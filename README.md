@@ -1,6 +1,6 @@
 # Rehome: Launcher for Car
 
-<p align="center"><img src="assets/screenshot.png" alt="Rehome on a car head unit" width="100%"></p>
+<p align="center"><img src="assets/screenshot-home.png" alt="Rehome home screen" width="49%"> <img src="assets/screenshot-bar.png" alt="Rehome map and contacts bar" width="49%"></p>
 
 A simple home screen for Android car head units: offline map, 360 camera window, radio, one-tap contacts, and a dark glass look.
 
@@ -17,6 +17,10 @@ Built and tested on one car with one aftermarket Android unit. Other landscape u
 - Speed glow along the top of the screen (yellow from 80 km/h, red from 120 km/h)
 - Dark or light theme, theme file export and import (see [THEMING.md](THEMING.md))
 
+## Rehome: Go
+
+A second, separate app for people who spend most of the time in Google Maps, the radio or YouTube. Set it as Home and it starts Maps, the radio and the 360 one after the other behind a cover, then keeps a slim frame, a star vignette, your logo, a mini bar and the speed light over those apps. It also shows the 360 when you creep along slowly (20 km/h at most). Download `Rehome-Go.apk` from the releases. It is independent of Rehome: Scroll; pick whichever you want as the Home app, and restart the unit once after switching.
+
 ## Install
 
 1. Download `Rehome.apk` from the latest [release](../../releases).
@@ -28,7 +32,7 @@ If an update is refused, uninstall the old version first.
 
 ## Build
 
-Java 17, Gradle 8.9. Run `gradle assembleRelease`, or use the **Build APK** workflow in GitHub Actions.
+Java 17, Gradle 8.9. Run `gradle assembleRelease`, or use the **Build APK** workflow in GitHub Actions. Rehome: Go lives in the `go` folder and has its own workflow, **Build Rehome Go**.
 
 ## Extras
 
@@ -44,4 +48,4 @@ Everything stays on the device. The only network request the launcher makes is t
 
 Claude (Anthropic) is the lead builder and designer. Google AI and ChatGPT creates images and media. Grok helped in a minor way. Idea, direction and testing: the project owner. Map rendering by [Mapsforge](https://github.com); map data © OpenStreetMap contributors.
 
-An independent hobby project, not affiliated with any brand named here. No licence has been chosen yet, so all rights are reserved.
+An independent hobby project, not affiliated with any brand named here. Released under the [MIT licence](LICENSE).

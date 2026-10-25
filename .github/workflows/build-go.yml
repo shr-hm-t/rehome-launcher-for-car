@@ -1,0 +1,56 @@
+name: Build Rehome Go
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Optional: publish a GitHub Release with this tag (for example go-2.0). Leave empty to only build."
+        required: false
+        default: ""
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Decode signing key (if the secrets exist)
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "Using the fixed release key"
+          else
+            echo "No signing secrets: using the debug key"
+          fi
+      - name: Build release APK
+        working-directory: go
+        run: gradle assembleRelease --no-daemon
+      - name: Name the APK
+        run: cp go/app/build/outputs/apk/release/app-release.apk Rehome-Go.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Rehome-Go-apk
+          path: Rehome-Go.apk
+      - name: Publish GitHub Release
+        if: ${{ github.event.inputs.release_tag != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.event.inputs.release_tag }}"
+          awk '/^## Go /{f=1; print; next} /^## /{f=0} f' RELEASE_NOTES.md | head -60 > notes.md
+          [ -s notes.md ] || echo "Rehome: Go" > notes.md
+          gh release create "$TAG" Rehome-Go.apk \
+            --title "Rehome: Go $TAG" \
+            --notes-file notes.md

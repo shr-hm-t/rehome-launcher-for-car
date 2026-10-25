@@ -1,5 +1,16 @@
 # Release notes
 
+## Go 2.0 (new, separate app)
+
+- **Rehome: Go**: a second app (`Rehome-Go.apk`) that can be set as Home instead of Rehome: Scroll. Rehome: Scroll is unchanged.
+- **Start-up:** a wallpaper cover goes up, Maps opens at once, then the radio, then 360 (delays in 100 ms steps, cover time after 360 is configurable). Direct boot aware.
+- **Overlays over Maps, radio, 360 and YouTube only:** star vignette (solid black, not see-through), your logo with sparkle, a top frame (left and right pieces, not over the 360) joined to the mini bar, and the speed light (amber from 80 km/h, red from 120 km/h).
+- **Mini bar:** shows the other three apps, hold any button to open the settings and app chooser. It can sit at the top (joined to the frame) or at the bottom (own rounded bar), with width, height and position settings.
+- **Slow-speed 360:** shows the 360 when driving slowly, upper limit 20 km/h.
+- **Wallpaper maker:** black wallpaper with a horizon and a bell-shaped glow, with your logo and the frame painted in; or use your own image.
+- **Fallback screen and welcome:** first-run setup (permissions, logo, apps, wallpaper) and a settings screen with calibration for every size. Home can return to the last app (default) or show this screen.
+- Apps are picked by name and package automatically, and can be changed.
+
 ## 1.7 (compared with 1.6)
 
 - **Start-up cover:** at boot (and, if you choose, each time the 360 app is opened from Rehome) a dark screen with a slowly breathing amber and blue glow in the middle and your logo fades in over the unit's start-up screens, then fades out. Time and mode are in the 360 camera and start-up tab. This replaces the plain black cover.
