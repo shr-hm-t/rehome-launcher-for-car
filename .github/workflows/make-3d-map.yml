@@ -12,6 +12,11 @@ jobs:
   map:
     runs-on: ubuntu-latest
     steps:
+      - name: Free disk space on the runner
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL /usr/local/share/boost || true
+          sudo mkdir -p /mnt/work && sudo chown "$USER" /mnt/work
+          df -h / /mnt
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -21,7 +26,7 @@ jobs:
       - name: Make the map (OpenStreetMap data, OpenMapTiles layout)
         run: |
           AREA="${{ github.event.inputs.area }}"
-          java -Xmx5g -jar planetiler.jar --download --area="$AREA" --output="$AREA.mbtiles" --nodemap-type=array --storage=mmap
+          java -Xmx5g -jar planetiler.jar --download --area="$AREA" --output="$AREA.mbtiles" --tmpdir=/mnt/work/tmp --download_dir=/mnt/work/data
           ls -la
       - name: Publish as a public download (no GitHub login needed to download it)
         env:
