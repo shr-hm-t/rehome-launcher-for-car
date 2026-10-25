@@ -7,7 +7,7 @@ on:
         required: true
         default: "sri-lanka"
 permissions:
-  contents: read
+  contents: write
 jobs:
   map:
     runs-on: ubuntu-latest
@@ -23,6 +23,15 @@ jobs:
           AREA="${{ github.event.inputs.area }}"
           java -Xmx5g -jar planetiler.jar --download --area="$AREA" --output="$AREA.mbtiles" --nodemap-type=array --storage=mmap
           ls -la
+      - name: Publish as a public download (no GitHub login needed to download it)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          AREA="${{ github.event.inputs.area }}"
+          TAG="map-$AREA"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --title "3D map: $AREA" \
+            --notes "Vector map for Rehome 3D (OpenMapTiles layout), made from OpenStreetMap data. Map data (c) OpenStreetMap contributors, ODbL."
+          gh release upload "$TAG" "$AREA.mbtiles" --clobber
       - uses: actions/upload-artifact@v4
         with:
           name: 3d-map-${{ github.event.inputs.area }}
