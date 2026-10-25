@@ -1,0 +1,30 @@
+name: Make 3D map file
+on:
+  workflow_dispatch:
+    inputs:
+      area:
+        description: "Area name as used by Geofabrik or Planetiler, for example sri-lanka, monaco, germany, india. Small countries work best."
+        required: true
+        default: "sri-lanka"
+permissions:
+  contents: read
+jobs:
+  map:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download Planetiler
+        run: curl -L -o planetiler.jar https://github.com/onthegomap/planetiler/releases/latest/download/planetiler.jar
+      - name: Make the map (OpenStreetMap data, OpenMapTiles layout)
+        run: |
+          AREA="${{ github.event.inputs.area }}"
+          java -Xmx5g -jar planetiler.jar --download --area="$AREA" --output="$AREA.mbtiles" --nodemap-type=array --storage=mmap
+          ls -la
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 3d-map-${{ github.event.inputs.area }}
+          path: "*.mbtiles"
+          retention-days: 14
