@@ -454,7 +454,7 @@ public class GoActivity extends Activity {
         toggle(col, "Show the logo", "logoOn", true);
         action(col, "Choose logo image", () -> pickImage(REQ_LOGO));
         stepper(col, "Logo size", "logoSize", 64, 16, 240, 2, "dp");
-        stepper(col, "Logo distance from top", "logoTop", 52, 0, 300, 2, "dp");
+        stepper(col, "Logo distance from top", "logoTop", 6, 0, 300, 2, "dp");
         toggle(col, "Sparkle on the logo", "sparkle", true);
         glowSwatches(col);
         action(col, "Make the wallpaper", () -> makeWallpaper(true));
@@ -472,12 +472,12 @@ public class GoActivity extends Activity {
         stepper(col, "Link strip between the pieces (0 = none)", "topLink", 8, 0, 60, 2, "dp");
         toggle(col, "Pieces block touches", "block", true);
         section(col, "Mini bar");
-        toggle(col, "Put the mini bar at the bottom (off = top, joined to the frame)", "barBottomMode", false);
-        note(col, "At the top (joined to the frame):");
+        toggle(col, "Put the mini bar at the bottom (off = at the top)", "barBottomMode", false);
+        note(col, "At the top (set distance 0 to join it to the frame):");
         stepper(col, "Width", "barW", 340, 120, 1000, 10, "dp");
         stepper(col, "Height", "barH", 48, 30, 160, 2, "dp");
-        stepper(col, "Left / right position (0 = centre)", "barX", 0, -700, 700, 10, "dp");
-        stepper(col, "Distance from the top", "barTop", 0, 0, 300, 2, "dp");
+        stepper(col, "Left / right position (0 = centre)", "barX", 180, -700, 700, 10, "dp");
+        stepper(col, "Distance from the top (0 = joined to the frame)", "barTop", 62, 0, 300, 2, "dp");
         note(col, "At the bottom (own rounded bar):");
         stepper(col, "Width", "bbW", 700, 200, 1400, 10, "dp");
         stepper(col, "Height", "bbH", 56, 30, 160, 2, "dp");

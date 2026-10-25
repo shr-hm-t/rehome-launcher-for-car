@@ -21,6 +21,11 @@ final class GoDraw {
         return p.getBoolean("barBottomMode", false);
     }
 
+    /** The bar slab is joined to the top frame only when it sits right at the top edge. */
+    static boolean joined(SharedPreferences p, float sc) {
+        return !barAtBottom(p) && p.getInt("barTop", 62) * sc <= 4f * sc;
+    }
+
     /** Mini bar rectangle in pixels: {left, top, width, height}. */
     static float[] barRect(SharedPreferences p, float sc, float screenW, float screenH) {
         if (barAtBottom(p)) {
@@ -30,8 +35,8 @@ final class GoDraw {
             return new float[]{cx - w / 2f, bottom - h, w, h};
         }
         float w = p.getInt("barW", 340) * sc, h = p.getInt("barH", 48) * sc;
-        float cx = screenW / 2f + p.getInt("barX", 0) * sc;
-        return new float[]{cx - w / 2f, p.getInt("barTop", 0) * sc, w, h};
+        float cx = screenW / 2f + p.getInt("barX", 180) * sc;
+        return new float[]{cx - w / 2f, p.getInt("barTop", 62) * sc, w, h};
     }
 
     /**
@@ -43,7 +48,7 @@ final class GoDraw {
         float sTop = p.getInt("statusTop", 0) * sc;
         float sl = p.getInt("statusL", 200) * sc, sr = p.getInt("statusR", 200) * sc;
         float link = p.getInt("topLink", 8) * sc;
-        mid = mid && !barAtBottom(p);
+        mid = mid && joined(p, sc);
         float[] b = barRect(p, sc, W, H);
         Path path = new Path();
         float r = Math.max(4f, sH * 0.35f);

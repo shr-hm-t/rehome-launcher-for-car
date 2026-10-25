@@ -1,5 +1,10 @@
 # Release notes
 
+## Go 2.0.1
+
+- Usage access is now recognised on units that grant it automatically; Go keeps checking until it works.
+- The mini bar now sits lower and to the right by default (below the unit's status bar), and the logo takes the top-centre place where the bar was. Both are still adjustable.
+
 ## Go 2.0 (new, separate app)
 
 - **Rehome: Go**: a second app (`Rehome-Go.apk`) that can be set as Home instead of Rehome: Scroll. Rehome: Scroll is unchanged.

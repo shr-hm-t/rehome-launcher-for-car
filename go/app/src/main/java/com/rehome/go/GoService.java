@@ -76,12 +76,9 @@ public class GoService extends Service {
     public int onStartCommand(Intent i, int flags, int startId) {
         if (p == null) p = GoPrefs.get(this);
         build();
-        AppWatcher.start(this, new Runnable() {
-            @Override
-            public void run() {
-                update();
-            }
-        });
+        startWatcher();
+        H.removeCallbacks(watchTick);
+        H.postDelayed(watchTick, 4000);
         startLocation();
         if (i != null && i.getBooleanExtra("seq", false)) sequence(i.getBooleanExtra("force", false));
         return START_STICKY;
@@ -89,6 +86,7 @@ public class GoService extends Service {
 
     @Override
     public void onDestroy() {
+        H.removeCallbacks(watchTick);
         stopLocation();
         removeAll();
         removeCover();
@@ -96,6 +94,24 @@ public class GoService extends Service {
         if (inst == this) inst = null;
         super.onDestroy();
     }
+
+    private void startWatcher() {
+        AppWatcher.start(this, new Runnable() {
+            @Override
+            public void run() {
+                update();
+            }
+        });
+    }
+
+    /** Usage access can be allowed after Go started: keep checking until the watcher runs. */
+    private final Runnable watchTick = new Runnable() {
+        @Override
+        public void run() {
+            if (!AppWatcher.running && AppWatcher.granted(GoService.this)) startWatcher();
+            H.postDelayed(this, 4000);
+        }
+    };
 
     /** Rebuild the overlays after a setting changed. */
     static void refresh() {
@@ -175,7 +191,7 @@ public class GoService extends Service {
         topV = new TopView(this);
         float sH = p.getInt("statusH", 44) * sc, sTop = p.getInt("statusTop", 0) * sc;
         float[] b = GoDraw.barRect(p, sc, W, Hh);
-        int th = (int) Math.ceil(Math.max(sTop + sH, GoDraw.barAtBottom(p) ? 0 : b[1] + b[3])) + 2;
+        int th = (int) Math.ceil(Math.max(sTop + sH, GoDraw.joined(p, sc) ? b[1] + b[3] : 0)) + 2;
         add(topV, lp(-1, th, false, Gravity.TOP | Gravity.START, 0, 0));
         if (p.getBoolean("block", true)) {
             int bh = (int) Math.ceil(sTop + sH);
@@ -267,7 +283,7 @@ public class GoService extends Service {
             if (p.getBoolean("vigOn", true)) GoDraw.vignette(c, getWidth(), getHeight(), p.getInt("vig", 200));
             if (logo != null && p.getBoolean("logoOn", true)) {
                 boolean sp = p.getBoolean("sparkle", true);
-                GoDraw.logo(c, logo, getWidth() / 2f, p.getInt("logoTop", 52) * sc, p.getInt("logoSize", 64) * sc, sp);
+                GoDraw.logo(c, logo, getWidth() / 2f, p.getInt("logoTop", 6) * sc, p.getInt("logoSize", 64) * sc, sp);
                 if (sp) postInvalidateOnAnimation();
             }
         }
@@ -281,7 +297,7 @@ public class GoService extends Service {
 
         @Override
         protected void onDraw(Canvas c) {
-            if (GoDraw.barAtBottom(p)) GoDraw.bar(c, getWidth(), getHeight());
+            if (!GoDraw.joined(p, sc)) GoDraw.bar(c, getWidth(), getHeight());
         }
     }
 

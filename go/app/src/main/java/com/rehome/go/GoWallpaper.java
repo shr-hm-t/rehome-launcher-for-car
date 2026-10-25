@@ -94,7 +94,7 @@ final class GoWallpaper {
         if (p.getBoolean("statusOn", true)) GoDraw.top(cv, p, sc, W, H, true, true, true);
         Bitmap logo = loadLogo(c);
         if (logo != null && p.getBoolean("logoOn", true)) {
-            GoDraw.logo(cv, logo, W / 2f, p.getInt("logoTop", 52) * sc, p.getInt("logoSize", 64) * sc, false);
+            GoDraw.logo(cv, logo, W / 2f, p.getInt("logoTop", 6) * sc, p.getInt("logoSize", 64) * sc, false);
         }
         return big;
     }

@@ -32,8 +32,18 @@ final class AppWatcher {
     static boolean granted(Context c) {
         try {
             AppOpsManager a = (AppOpsManager) c.getSystemService(Context.APP_OPS_SERVICE);
-            return a.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), c.getPackageName())
-                    == AppOpsManager.MODE_ALLOWED;
+            int m = a.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), c.getPackageName());
+            if (m == AppOpsManager.MODE_ALLOWED) return true;
+            if (m == AppOpsManager.MODE_DEFAULT) {
+                // some units grant it automatically and then report "default": trust the permission, or ask for real data
+                if (c.checkCallingOrSelfPermission("android.permission.PACKAGE_USAGE_STATS")
+                        == android.content.pm.PackageManager.PERMISSION_GRANTED) return true;
+                UsageStatsManager u = (UsageStatsManager) c.getSystemService(Context.USAGE_STATS_SERVICE);
+                long now = System.currentTimeMillis();
+                java.util.List<android.app.usage.UsageStats> l = u.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, now - 86400000L, now);
+                return l != null && !l.isEmpty();
+            }
+            return false;
         } catch (Throwable t) {
             return false;
         }
