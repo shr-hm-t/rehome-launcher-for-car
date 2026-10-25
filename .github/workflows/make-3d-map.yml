@@ -34,9 +34,10 @@ jobs:
         run: |
           AREA="${{ github.event.inputs.area }}"
           TAG="map-$AREA"
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --title "3D map: $AREA" \
+          R="${{ github.repository }}"
+          gh release view "$TAG" --repo "$R" >/dev/null 2>&1 || gh release create "$TAG" --repo "$R" --prerelease --title "3D map: $AREA" \
             --notes "Vector map for Rehome 3D (OpenMapTiles layout), made from OpenStreetMap data. Map data (c) OpenStreetMap contributors, ODbL."
-          gh release upload "$TAG" "$AREA.mbtiles" --clobber
+          gh release upload "$TAG" "$AREA.mbtiles" --repo "$R" --clobber
       - uses: actions/upload-artifact@v4
         with:
           name: 3d-map-${{ github.event.inputs.area }}
