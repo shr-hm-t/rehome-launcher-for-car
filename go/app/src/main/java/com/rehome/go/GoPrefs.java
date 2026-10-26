@@ -3,19 +3,22 @@ package com.rehome.go;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.SystemClock;
 import android.provider.Settings;
 
 import java.io.File;
+import java.util.List;
 
-/** Settings and files of Rehome: Go. Kept in device-protected storage so they can be read before the first unlock. */
+/** Settings, files and app lookup of Rehome: Go. Kept in device-protected storage so it can be read before the first unlock. */
 final class GoPrefs {
     private GoPrefs() {
     }
 
-    static final String[] ROLES = {"maps", "radio", "cam", "yt"};
+    static final String[] ROLES = {"cam", "maps", "radio", "yt"};
 
     static Context dc(Context c) {
         Context a = c.getApplicationContext() != null ? c.getApplicationContext() : c;
@@ -30,26 +33,15 @@ final class GoPrefs {
         return new File(dc(c).getFilesDir(), name);
     }
 
-    /** dp to pixels, including the "UI size" setting of Go. */
-    static float scale(Context c, SharedPreferences p) {
-        float ui = Math.max(60, Math.min(160, p.getInt("ui", 100))) / 100f;
-        return c.getResources().getDisplayMetrics().density * ui;
-    }
-
-    static String label(String role) {
-        switch (role) {
-            case "maps": return "Maps";
-            case "radio": return "Radio";
-            case "cam": return "360";
-            default: return "YouTube (browser)";
-        }
+    static boolean canOverlay(Context c) {
+        return Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(c);
     }
 
     /** True when another launcher (for example Rehome: Scroll) is the chosen Home app, so Go must stay quiet. */
     static boolean otherHome(Context c) {
         try {
             Intent h = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
-            ResolveInfo ri = c.getPackageManager().resolveActivity(h, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
+            ResolveInfo ri = c.getPackageManager().resolveActivity(h, PackageManager.MATCH_DEFAULT_ONLY);
             if (ri == null || ri.activityInfo == null) return false;
             if ("android".equals(ri.activityInfo.packageName)) return false;   // no default chosen yet
             return !c.getPackageName().equals(ri.activityInfo.packageName);
@@ -57,6 +49,8 @@ final class GoPrefs {
             return false;
         }
     }
+
+    // ------------------------------------------------------------ once per boot
 
     private static int bootCount(Context c) {
         try {
@@ -66,7 +60,7 @@ final class GoPrefs {
         }
     }
 
-    /** True once per boot: the start-up sequence has not run since the unit last started. */
+    /** True once per boot: the start-up cover has not run since the unit last started. */
     static boolean freshBoot(Context c, SharedPreferences p) {
         long now = SystemClock.elapsedRealtime();
         long mark = p.getLong("seqMark", -1);
@@ -76,5 +70,85 @@ final class GoPrefs {
 
     static void markBoot(Context c, SharedPreferences p) {
         p.edit().putLong("seqMark", SystemClock.elapsedRealtime()).putInt("seqBoot", bootCount(c)).apply();
+    }
+
+    // ------------------------------------------------------------ finding the apps by name and package
+
+    private static int score(String role, String name, String pk) {
+        String s = name + " " + pk;
+        switch (role) {
+            case "maps":
+                if (pk.equals("com.google.android.apps.maps")) return 10;
+                return s.contains("maps") || s.contains("navigation") ? 3 : 0;
+            case "radio":
+                if (s.contains("internet radio") || s.contains("podcast")) return 0;
+                return s.contains("radio") ? 5 : (pk.endsWith(".fm") || s.contains(" fm") ? 3 : 0);
+            case "cam": {
+                int v = 0;
+                if (s.contains("360")) v += 5;
+                if (s.contains("avm") || s.contains("around") || s.contains("panor") || s.contains("surround") || s.contains("bird")) v += 4;
+                if (v == 0 && s.contains("camera") && !pk.startsWith("com.google") && !pk.equals("com.android.camera")) v = 1;
+                return v;
+            }
+            default:
+                if (pk.equals("com.brave.browser")) return 10;
+                if (pk.equals("com.android.chrome")) return 4;
+                return s.contains("browser") ? 2 : 0;
+        }
+    }
+
+    /** The package for a role, found by name and package and remembered. Empty if nothing matches. */
+    static String pkg(Context c, String role) {
+        SharedPreferences p = get(c);
+        PackageManager pm = c.getPackageManager();
+        String cached = p.getString("app_" + role, "");
+        if (cached.length() > 0 && pm.getLaunchIntentForPackage(cached) != null) return cached;
+        String best = "";
+        int bs = 0;
+        try {
+            Intent li = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+            List<ResolveInfo> l = pm.queryIntentActivities(li, 0);
+            for (ResolveInfo ri : l) {
+                String pk = ri.activityInfo.packageName;
+                if (pk.equals(c.getPackageName())) continue;
+                int sc = score(role, String.valueOf(ri.loadLabel(pm)).toLowerCase(), pk.toLowerCase());
+                if (sc > bs) {
+                    bs = sc;
+                    best = pk;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        if (best.length() > 0) p.edit().putString("app_" + role, best).apply();
+        return best;
+    }
+
+    /** The third button: the radio when you are in the 360 or YouTube, YouTube when you are in Maps or the radio. */
+    static String third(SharedPreferences p) {
+        String cur = p.getString("cur", "maps");
+        return "cam".equals(cur) || "yt".equals(cur) ? "radio" : "yt";
+    }
+
+    static void launch(Context c, String role) {
+        try {
+            SharedPreferences p = get(c);
+            if ("yt".equals(role)) {
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://m.youtube.com"));
+                String bp = pkg(c, "yt");
+                if (bp.length() > 0) i.setPackage(bp);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                c.startActivity(i);
+                p.edit().putString("cur", "yt").apply();
+                return;
+            }
+            String pk = pkg(c, role);
+            if (pk.length() == 0) return;
+            Intent i = c.getPackageManager().getLaunchIntentForPackage(pk);
+            if (i == null) return;
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            c.startActivity(i);
+            p.edit().putString("cur", role).apply();
+        } catch (Exception ignored) {
+        }
     }
 }

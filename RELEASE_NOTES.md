@@ -1,5 +1,17 @@
 # Release notes
 
+## Go 2.1
+
+A redesign of Rehome: Go. It is now very small and has no screens of its own.
+
+- **Three buttons, bottom right:** bare icons on separate black discs: 360, Maps, and a third one that shows the radio when you are in the 360 or YouTube, and YouTube when you are in Maps or the radio. Hold them to move and resize them (corner handles, fixed ratio) and to set the transparency; otherwise they stay fixed.
+- **Black corner frame:** the launcher's frame with rounded corners, fully opaque, always on.
+- **Home opens Maps** (also when opened from the app list). At boot nothing is opened: the start-up cover (your emblem on black with a smooth round glow, red by default) stays for a few seconds above everything.
+- **Speed light and the slow-speed 360** are kept. The slow-speed 360 now defaults to 5 to 20 km/h.
+- **Rehome: Boot Pack** is a separate app icon: it makes the null boot logo (turned 90 degrees clockwise), the null boot animation (one frame, 1 fps, looping) and the wallpaper from your emblem (60% of the height, a little above the middle; a black background is made transparent automatically). Cover time and the driving settings are there too.
+- **No usage access needed any more.** Apps are found by name and package automatically. Only "display over other apps" and location are asked.
+- Removed: the fallback screen, the welcome, the vignette, the top frame, the logo overlay and the start-up macro.
+
 ## Go 2.0.1
 
 - Usage access is now recognised on units that grant it automatically; Go keeps checking until it works.

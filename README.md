@@ -19,7 +19,7 @@ Built and tested on one car with one aftermarket Android unit. Other landscape u
 
 ## Rehome: Go
 
-A second, separate app for people who spend most of the time in Google Maps, the radio or YouTube. Set it as Home and it starts Maps, the radio and the 360 one after the other behind a cover, then keeps a slim frame, a star vignette, your logo, a mini bar and the speed light over those apps. It also shows the 360 when you creep along slowly (20 km/h at most). Download `Rehome-Go.apk` from the releases. It is independent of Rehome: Scroll; pick whichever you want as the Home app, and restart the unit once after switching.
+A second, much smaller app for people who spend most of the time in Google Maps, the radio or YouTube. Set it as Home: pressing Home opens Maps. It draws a black corner frame, a speed light and three bare icon buttons (360, Maps, and the radio or YouTube) that you can move, resize and make transparent by holding them. At boot it covers the unit's start-up with your emblem for a few seconds. It also shows the 360 when you creep along slowly. **Rehome: Boot Pack** (a second icon of the same app) makes the matching boot logo, boot animation and wallpaper. Download `Rehome-Go.apk` from the releases. It is independent of Rehome: Scroll; restart the unit once after switching the Home app.
 
 ## Install
 
