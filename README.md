@@ -87,6 +87,12 @@ Emergency way into the settings: open **Rehome: Scroll** from the app list, or h
 | Speed light or slow-speed 360 do nothing | They need *location*. Allow it in Rehome: Boot Pack and make sure the unit has a GPS fix. |
 | Touches do not work on a tablet | Update to the latest Go. Newer Android versions drop touches through full-screen overlays; Go avoids them. |
 | Maps opens but the buttons are in the way | Hold the Map button and move or shrink the pill. |
+| Boot Pack will not work properly | Force-stop Rehome: Go in Android settings, then open Rehome: Boot Pack. |
+| How do I open YouTube? | Hold the radio button (when it shows the radio) or tap the YouTube button. The third button depends on *usage access*; without it, tap is radio and hold is YouTube. |
+
+## Project status
+
+Paused after Go 2.4.4. See [TODO.md](TODO.md) for what is left and notes for anyone who wants to continue.
 
 ## Related apps
 
