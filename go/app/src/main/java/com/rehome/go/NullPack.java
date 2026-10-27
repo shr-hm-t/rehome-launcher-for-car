@@ -111,26 +111,27 @@ final class NullPack {
 
     // ------------------------------------------------------------ the scene
 
-    /** Black, and with an emblem: a smooth round glow behind it and the emblem on top. */
-    static Bitmap scene(Bitmap emblem, int glow) {
+    /**
+     * Black, with a colour vignette: dark in the middle of the screen, the colour rising smoothly (a bell curve of the
+     * distance from the centre) towards the edges. With an emblem it sits on the right at 60% of the height.
+     * Rounded black corners, like Go's frame, are cut on top. Without an emblem (and not for the keyboard) it is plain black.
+     */
+    static Bitmap scene(Bitmap emblem, int glow, boolean glowWithoutEmblem) {
         int[] px = new int[W * H];
         java.util.Arrays.fill(px, 0xFF000000);
-        float cx = W / 2f, cy = H * 0.41f;
-        if (emblem != null) {
-            float R = H * 0.85f;
+        if (emblem != null || glowWithoutEmblem) {
             float gr = Color.red(glow), gg = Color.green(glow), gb = Color.blue(glow);
             Random rnd = new Random(7);
+            float peak = 0.95f, sigma = 0.40f;
+            float i0 = (float) Math.exp(-(peak * peak) / (2 * sigma * sigma));   // so the very middle is exactly black
             for (int y = 0; y < H; y++) {
-                float dy = y - cy;
+                float ny = (y + 0.5f) / H * 2f - 1f;
                 for (int x = 0; x < W; x++) {
-                    float dx = x - cx;
-                    float d = (float) Math.sqrt(dx * dx + dy * dy) / R;
+                    float nx = (x + 0.5f) / W * 2f - 1f;
+                    float d = (float) Math.sqrt(nx * nx + ny * ny) / 1.2f;
+                    float k = (float) Math.exp(-((d - peak) * (d - peak)) / (2 * sigma * sigma));
+                    k = Math.max(0f, (k - i0) / (1f - i0)) * 0.7f;
                     float dither = rnd.nextFloat() - 0.5f;   // stops visible bands in the soft glow
-                    if (d >= 1f) {
-                        continue;
-                    }
-                    float t = 1f - d;
-                    float k = t * t * (3f - 2f * t) * 0.6f;
                     int r = clamp(Math.round(gr * k + dither));
                     int g = clamp(Math.round(gg * k + dither));
                     int b = clamp(Math.round(gb * k + dither));
@@ -140,17 +141,27 @@ final class NullPack {
         }
         Bitmap bm = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);   // mutable, so a Canvas can draw on it
         bm.setPixels(px, 0, W, 0, 0, W, H);
+        Canvas c = new Canvas(bm);
         if (emblem != null) {
-            Canvas c = new Canvas(bm);
+            float cx = W * 0.75f, cy = H * 0.41f;
             float eh = H * 0.60f;
             float ew = eh * emblem.getWidth() / (float) emblem.getHeight();
-            if (ew > W * 0.9f) {
-                ew = W * 0.9f;
+            if (ew > W * 0.44f) {
+                ew = W * 0.44f;
                 eh = ew * emblem.getHeight() / (float) emblem.getWidth();
             }
             Paint p = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG);
             c.drawBitmap(emblem, null, new RectF(cx - ew / 2f, cy - eh / 2f, cx + ew / 2f, cy + eh / 2f), p);
         }
+        // rounded black corners (the same margin and radius as the corner frame)
+        float m = H * 0.011f, r = H * 0.083f;
+        android.graphics.Path path = new android.graphics.Path();
+        path.setFillType(android.graphics.Path.FillType.EVEN_ODD);
+        path.addRect(0, 0, W, H, android.graphics.Path.Direction.CW);
+        path.addRoundRect(new RectF(m, m, W - m, H - m), r, r, android.graphics.Path.Direction.CW);
+        Paint fp = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fp.setColor(0xFF000000);
+        c.drawPath(path, fp);
         return bm;
     }
 
@@ -160,16 +171,20 @@ final class NullPack {
 
     // ------------------------------------------------------------ files
 
-    /** Writes wallpaper.png, logo.png (turned 90 degrees clockwise, 720x1280), the same as a BMP, and bootanimation.zip. */
+    /**
+     * Writes bkg.png (wallpaper), logo.png and logo.bmp (turned 90 degrees clockwise, 720x1280), bootanimation.zip
+     * and keyboard.png (a keyboard background: the same vignette, no emblem).
+     */
     static void write(File dir, Bitmap emblem, int glow) throws Exception {
         dir.mkdirs();
-        Bitmap s = scene(emblem, glow);
-        png(s, new File(dir, "wallpaper.png"));
+        Bitmap s = scene(emblem, glow, false);
+        png(s, new File(dir, "bkg.png"));
+        png(scene(null, glow, true), new File(dir, "keyboard.png"));
         Matrix m = new Matrix();
         m.postRotate(90);
         Bitmap rot = Bitmap.createBitmap(s, 0, 0, W, H, m, true);   // 720 x 1280
         png(rot, new File(dir, "logo.png"));
-        bmp24(rot, new File(dir, "bootlogo_720x1280_rotated.bmp"));
+        bmp24(rot, new File(dir, "logo.bmp"));
         byte[] frame = pngBytes(s);
         String desc = W + " " + H + " 1\np 0 0 part0\n";
         File zip = new File(dir, "bootanimation.zip");

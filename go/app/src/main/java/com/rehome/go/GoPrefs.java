@@ -124,23 +124,52 @@ final class GoPrefs {
     }
 
     /** The third button: the radio when you are in the 360 or YouTube, YouTube when you are in Maps or the radio. */
-    static String third(SharedPreferences p) {
+    static String third(Context c, SharedPreferences p) {
+        if (!AppWatcher.running) return "radio";   // no usage access: radio on a tap, YouTube (Brave) on a hold
         String cur = p.getString("cur", "maps");
         return "cam".equals(cur) || "yt".equals(cur) ? "radio" : "yt";
+    }
+
+    static String otherThird(Context c, SharedPreferences p) {
+        return "radio".equals(third(c, p)) ? "yt" : "radio";
+    }
+
+    /** The package of the 360 player (car360-player): any app whose package starts with "bvack.". */
+    static String playerPkg(Context c) {
+        PackageManager pm = c.getPackageManager();
+        try {
+            pm.getPackageInfo("bvack.camera360", 0);
+            return "bvack.camera360";
+        } catch (Exception ignored) {
+        }
+        try {
+            Intent li = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+            for (ResolveInfo ri : pm.queryIntentActivities(li, 0)) {
+                if (ri.activityInfo.packageName.startsWith("bvack.")) return ri.activityInfo.packageName;
+            }
+        } catch (Throwable ignored) {
+        }
+        return "";
+    }
+
+    /** Opens the 360 player. */
+    static boolean launchPlayer(Context c) {
+        try {
+            String pk = playerPkg(c);
+            if (pk.length() == 0) return false;
+            Intent i = c.getPackageManager().getLaunchIntentForPackage(pk);
+            if (i == null) return false;
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            c.startActivity(i);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     static boolean launch(Context c, String role) {
         try {
             SharedPreferences p = get(c);
-            if ("yt".equals(role)) {
-                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://m.youtube.com"));
-                String bp = pkg(c, "yt");
-                if (bp.length() > 0) i.setPackage(bp);
-                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                c.startActivity(i);
-                p.edit().putString("cur", "yt").apply();
-                return true;
-            }
             String pk = pkg(c, role);
             if (pk.length() == 0) return false;
             Intent i = c.getPackageManager().getLaunchIntentForPackage(pk);

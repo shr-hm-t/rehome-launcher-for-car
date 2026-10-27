@@ -1,5 +1,12 @@
 # Release notes
 
+## Go 2.3
+
+- Boot Pack: colour vignette now centred on the screen (black in the middle, colour towards the edges), rounded black corners drawn on every output, emblem on the right.
+- One black pill holds the three buttons; only the top two corners are rounded. It can be moved a little outside the screen.
+- Icons normalised to the same visual size.
+- Optional location and usage access, hold 360 for the 360 player, cover 12 s, new README user guide.
+
 ## Go 2.2
 
 - New icons for the buttons and the app icons.

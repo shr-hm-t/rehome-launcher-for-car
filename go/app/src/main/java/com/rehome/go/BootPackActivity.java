@@ -92,8 +92,27 @@ public class BootPackActivity extends Activity {
         status = tv("", 14, 0xFF8FB8FF, false);
         col.addView(status, wrap(6));
 
+        col.addView(btn("Set the wallpaper as this device's wallpaper", this::setWallpaper), wrap(8));
+        section(col, "Optional permissions");
+        col.addView(tv("Both are optional. Go works without them, with less.", 14, 0xFFB0B8C0, false));
+        final TextView perm = tv("", 15, 0xFFFFC27A, false);
+        col.addView(perm, wrap(6));
+        col.addView(tv("Location gives Go your speed: it is used for the speed light and for showing the 360 when you creep along slowly. Without it those two do nothing.", 14, 0xFFB0B8C0, false), wrap(6));
+        col.addView(btn("Allow location", () -> {
+            if (Build.VERSION.SDK_INT >= 23) requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 6);
+        }), wrap(6));
+        col.addView(tv("Usage access lets Go see which app is in front, so the third button can switch between the radio and YouTube. Without it the third button is the radio on a tap and YouTube (Brave) on a hold. Only the app name is read, nothing leaves the device.", 14, 0xFFB0B8C0, false), wrap(10));
+        col.addView(btn("Allow usage access", () -> {
+            try {
+                startActivity(new Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS));
+            } catch (Exception e) {
+                Toast.makeText(this, "Could not open usage access on this unit.", Toast.LENGTH_LONG).show();
+            }
+        }), wrap(6));
+        permView = perm;
+        refreshPerms();
         section(col, "Start-up cover");
-        stepper(col, "Cover stays for", "coverMs", 4000, 1000, 30000, 500, "ms");
+        stepper(col, "Cover stays for", "coverMs", 12000, 1000, 60000, 500, "ms");
         section(col, "Driving");
         toggle(col, "Show the 360 when driving slowly (test while parked first)", "auto360", true);
         stepper(col, "...faster than", "auto360Min", 5, 0, 60, 1, "km/h");
@@ -108,9 +127,38 @@ public class BootPackActivity extends Activity {
 
     // ------------------------------------------------------------------ emblem and files
 
+    private TextView permView;
+
+    private void refreshPerms() {
+        if (permView == null) return;
+        boolean loc = Build.VERSION.SDK_INT < 23 || checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        permView.setText((loc ? "\u2713 Location" : "\u2717 Location") + "     " + (AppWatcher.granted(this) ? "\u2713 Usage access" : "\u2717 Usage access"));
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
+        super.onRequestPermissionsResult(code, perms, res);
+        refreshPerms();
+        try {
+            startService(new Intent(this, GoService.class));
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void setWallpaper() {
+        try {
+            Bitmap b = NullPack.scene(emblem(), p.getInt("glow", 0xFFFF1E1E), false);
+            android.app.WallpaperManager.getInstance(this).setBitmap(b);
+            say("Wallpaper set.");
+        } catch (Throwable t) {
+            say("Could not set the wallpaper: " + t);
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+        refreshPerms();
         GoService.suspend(true);    // Go's frame and buttons would sit on top of this screen
     }
 
@@ -135,7 +183,7 @@ public class BootPackActivity extends Activity {
     /** Rebuild the preview and the cover wallpaper. */
     private void regen() {
         try {
-            Bitmap s = NullPack.scene(emblem(), p.getInt("glow", 0xFFFF1E1E));
+            Bitmap s = NullPack.scene(emblem(), p.getInt("glow", 0xFFFF1E1E), false);
             NullPack.png(s, GoPrefs.file(this, "wallpaper.png"));
             preview.setImageBitmap(s);
         } catch (Throwable t) {
@@ -194,11 +242,15 @@ public class BootPackActivity extends Activity {
         new Thread(() -> {
             String msg;
             try {
-                File dir = new File(getExternalFilesDir(null), "bootpack");
+                File dir = new File(getCacheDir(), "bootpack");
                 NullPack.write(dir, emblem(), p.getInt("glow", 0xFFFF1E1E));
                 String where = copyToDownloads(dir);
-                msg = "Done. Saved in " + dir.getAbsolutePath() + (where.length() > 0 ? " and in " + where : "")
-                        + ": bootanimation.zip, logo.png, bootlogo_720x1280_rotated.bmp, wallpaper.png, desc.txt.";
+                if (where.length() == 0) {   // Downloads was not possible: keep the files in the app's own folder instead
+                    File own = new File(getExternalFilesDir(null), "bootpack");
+                    NullPack.write(own, emblem(), p.getInt("glow", 0xFFFF1E1E));
+                    where = own.getAbsolutePath();
+                }
+                msg = "Done. Saved in " + where + ": bootanimation.zip, logo.png, logo.bmp, bkg.png, keyboard.png, desc.txt.";
             } catch (Throwable e) {
                 msg = "Could not make the boot pack: " + e;
             }
@@ -209,7 +261,7 @@ public class BootPackActivity extends Activity {
 
     /** Best-effort copy of the files into Download/Rehome so a file manager finds them. */
     private String copyToDownloads(File dir) {
-        String[] names = {"bootanimation.zip", "bootlogo_720x1280_rotated.bmp", "logo.png", "wallpaper.png", "desc.txt"};
+        String[] names = {"bootanimation.zip", "logo.bmp", "logo.png", "bkg.png", "keyboard.png", "desc.txt"};
         try {
             if (Build.VERSION.SDK_INT >= 29) {
                 for (String n : names) {

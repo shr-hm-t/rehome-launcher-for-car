@@ -123,7 +123,7 @@ public class GoActivity extends Activity {
         }
     }
 
-    /** Only two things are ever asked: display over other apps, and location (for the speed). */
+    /** Only "display over other apps" is asked here. Location and usage access are optional, in Rehome: Boot Pack. */
     private void askPermissionsOnce() {
         if (!GoPrefs.canOverlay(this)) {
             if (!p.getBoolean("askedOverlay", false)) {
@@ -135,11 +135,6 @@ public class GoActivity extends Activity {
             }
         } else if (p.getBoolean("askedOverlay", false)) {
             p.edit().putBoolean("askedOverlay", false).apply();
-        }
-        if (Build.VERSION.SDK_INT >= 23 && !p.getBoolean("askedLoc", false)
-                && checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            p.edit().putBoolean("askedLoc", true).apply();
-            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 5);
         }
     }
 
