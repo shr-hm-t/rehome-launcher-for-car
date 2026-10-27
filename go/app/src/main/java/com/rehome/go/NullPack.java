@@ -131,7 +131,7 @@ final class NullPack {
                 float ny = (y + 0.5f) / H * 2f - 1f;
                 for (int x = 0; x < W; x++) {
                     float nx = (x + 0.5f) / W * 2f - 1f;
-                    float d = (float) Math.sqrt(nx * nx + ny * ny);   // 0 middle .. 1 at the edge centres (an ellipse)
+                    float d = (float) Math.sqrt(nx * nx + (ny * H / (float) W) * (ny * H / (float) W));   // a true circle: 0 in the middle, 1 at half the width
                     float a = Math.max(0f, 1f - d / spread) * black;   // black: full in the middle, none at the spread distance
                     float k = (1f - a) * colour;
                     float dither = rnd.nextFloat() - 0.5f;   // stops visible bands in the soft glow

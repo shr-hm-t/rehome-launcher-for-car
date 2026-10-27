@@ -92,7 +92,7 @@ Emergency way into the settings: open **Rehome: Scroll** from the app list, or h
 
 ## Project status
 
-Paused after Go 2.4.4. See [TODO.md](TODO.md) for what is left and notes for anyone who wants to continue.
+Paused after Go 2.4.5. See [TODO.md](TODO.md) for what is left and notes for anyone who wants to continue.
 
 ## Related apps
 

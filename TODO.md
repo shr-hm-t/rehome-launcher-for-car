@@ -1,6 +1,6 @@
 # TODO and hand-over notes
 
-The project was paused after **Go 2.4.4** (latest Go release) and **Rehome: Scroll 1.7** (release `main`). Nothing below is started unless stated. Anyone is welcome to continue.
+The project was paused after **Go 2.4.5** (latest Go release) and **Rehome: Scroll 1.7** (release `main`). Nothing below is started unless stated. Anyone is welcome to continue.
 
 ## Small things left for Go
 
@@ -28,7 +28,7 @@ Two APKs: **Go** and **main + Go**.
 
 - **Layout:** the launcher is in `app/` (about 4,300 lines in `MainActivity`). Go is separate in `go/` (package `com.rehome.go`, Boot Pack is a second launcher icon of the same app). Go classes: `GoActivity` (Home), `GoService` (all overlays), `GoPrefs`, `AppWatcher`, `BootPackActivity`, `NullPack` (picture and file maker).
 - **Builds:** only through GitHub Actions. Go: workflow `Build Rehome Go` (`build-go.yml`), optional input `release_tag` such as `go-2.5` publishes a release. Compile errors show as annotations. There is no local Android SDK.
-- **Versions:** Go `go/app/build.gradle` (versionCode 29, versionName 2.4.4). Add a section to `RELEASE_NOTES.md` for each release.
+- **Versions:** Go `go/app/build.gradle` (versionCode 30, versionName 2.4.5). Add a section to `RELEASE_NOTES.md` for each release.
 - **Rules from the owner:** no brand or trademark names in repository files; screenshots have the emblem painted out. Ask before big changes to the launcher (it is tested and loved).
 - **Android facts learned:** newer Android drops touches through a full-screen overlay window, so the frame is built from edge strips and corner windows. The head unit auto-grants usage access and reports `MODE_DEFAULT`; see `AppWatcher.granted()`. Direct boot: prefs and files live in device-protected storage. `Bitmap.createBitmap(int[]...)` is immutable, so draw on a mutable bitmap.
 - **Boot Pack picture:** full colour background, black laid over it (full in the middle, fading linearly to nothing at "black spread"), emblem placement x, y and size are settings, rounded black corners on all outputs. Files go to `Download/Rehome`: `bkg.png`, `logo.png`, `logo.bmp` (turned 90 degrees clockwise, 720x1280), `bootanimation.zip` (one frame), `keyboard.png`.
