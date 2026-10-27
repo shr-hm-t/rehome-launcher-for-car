@@ -36,7 +36,9 @@ jobs:
           fi
       - name: Build release APK
         working-directory: go
-        run: gradle assembleRelease --no-daemon
+        run: |
+          set -o pipefail
+          gradle assembleRelease --no-daemon 2>&1 | tee /tmp/b.log || { grep -E "error:|\.java:[0-9]+" /tmp/b.log | head -15 | while read -r l; do echo "::error::$l"; done; exit 1; }
       - name: Name the APK
         run: cp go/app/build/outputs/apk/release/app-release.apk Rehome-Go.apk
       - uses: actions/upload-artifact@v4
