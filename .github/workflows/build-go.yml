@@ -51,7 +51,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ github.event.inputs.release_tag }}"
-          awk '/^## Go /{f=1; print; next} /^## /{f=0} f' RELEASE_NOTES.md | head -60 > notes.md
+          VER="${TAG#go-}"
+          # only this version's section (not every Go section)
+          awk -v v="Go $VER" '$0 ~ "^## "v"( |$)" {f=1; print; next} /^## /{f=0} f' RELEASE_NOTES.md > notes.md
           [ -s notes.md ] || echo "Rehome: Go" > notes.md
           gh release create "$TAG" Rehome-Go.apk \
             --title "Rehome: Go $TAG" \
