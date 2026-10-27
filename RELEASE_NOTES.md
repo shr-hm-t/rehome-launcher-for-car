@@ -1,5 +1,10 @@
 # Release notes
 
+## Go 2.4.3
+
+- Boot Pack: the colour now reaches much further in from the edges (wide, gradual spread, black only in a smaller middle).
+- keyboard.png is now a separate radio-style colour fade, not related to the emblem or vignette.
+
 ## Go 2.4.2
 
 - Boot Pack: the vignette is now a smooth, gradual mix from black in the middle to colour at the edges (no bell curve). Spread sets the size of the black middle.

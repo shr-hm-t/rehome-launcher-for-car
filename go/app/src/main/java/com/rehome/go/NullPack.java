@@ -126,14 +126,14 @@ final class NullPack {
             Random rnd = new Random(7);
             float spread = (cfg == null ? 50 : cfg.getInt("picSpread", 50)) / 100f;
             float strength = (cfg == null ? 100 : cfg.getInt("picVig", 100)) / 100f * 0.7f;
-            float r0 = 0.6f * (1f - spread);   // radius of the black middle
+            float r0 = 0.5f * (1f - spread);   // radius of the black middle
             for (int y = 0; y < H; y++) {
                 float ny = (y + 0.5f) / H * 2f - 1f;
                 for (int x = 0; x < W; x++) {
                     float nx = (x + 0.5f) / W * 2f - 1f;
-                    float d = (float) Math.sqrt(nx * nx + ny * ny) / 1.4142f;   // 0 middle .. 1 corners
+                    float d = (float) Math.sqrt(nx * nx + ny * ny) / 1.0f;   // 0 middle .. 1 at the edges (an ellipse)
                     float t = Math.min(1f, Math.max(0f, (d - r0) / (1f - r0)));
-                    float k = t * t * (3f - 2f * t) * strength;   // smooth, gradual mix from black to colour
+                    float k = (0.5f * t + 0.5f * t * t * (3f - 2f * t)) * strength;   // wide, gradual mix from black to colour
                     float dither = rnd.nextFloat() - 0.5f;   // stops visible bands in the soft glow
                     int r = clamp(Math.round(gr * k + dither));
                     int g = clamp(Math.round(gg * k + dither));
@@ -168,6 +168,26 @@ final class NullPack {
         return bm;
     }
 
+    /** Keyboard theme picture: radio-style colour, bright on the left fading darker to the right. Independent of the emblem and vignette settings. */
+    static Bitmap keyboard(int glow) {
+        float gr = Color.red(glow), gg = Color.green(glow), gb = Color.blue(glow);
+        int[] px = new int[W * H];
+        Random rnd = new Random(11);
+        for (int y = 0; y < H; y++) {
+            float fy = (y + 0.5f) / H;
+            for (int x = 0; x < W; x++) {
+                float fx = (x + 0.5f) / W;
+                float k = 0.75f - 0.6f * (0.8f * fx + 0.2f * fy);   // 0.75 top-left .. 0.15 bottom-right
+                float dither = rnd.nextFloat() - 0.5f;
+                px[y * W + x] = 0xFF000000 | (clamp(Math.round(gr * k + dither)) << 16)
+                        | (clamp(Math.round(gg * k + dither)) << 8) | clamp(Math.round(gb * k + dither));
+            }
+        }
+        Bitmap bm = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);
+        bm.setPixels(px, 0, W, 0, 0, W, H);
+        return bm;
+    }
+
     private static int clamp(int v) {
         return v < 0 ? 0 : Math.min(255, v);
     }
@@ -176,13 +196,13 @@ final class NullPack {
 
     /**
      * Writes bkg.png (wallpaper), logo.png and logo.bmp (turned 90 degrees clockwise, 720x1280), bootanimation.zip
-     * and keyboard.png (a keyboard background: the same vignette, no emblem).
+     * and keyboard.png (a keyboard background: a radio-style colour fade, no emblem).
      */
     static void write(File dir, Bitmap emblem, int glow) throws Exception {
         dir.mkdirs();
         Bitmap s = scene(emblem, glow, false);
         png(s, new File(dir, "bkg.png"));
-        png(scene(null, glow, true), new File(dir, "keyboard.png"));
+        png(keyboard(glow), new File(dir, "keyboard.png"));
         Matrix m = new Matrix();
         m.postRotate(90);
         Bitmap rot = Bitmap.createBitmap(s, 0, 0, W, H, m, true);   // 720 x 1280
