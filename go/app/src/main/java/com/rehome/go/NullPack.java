@@ -116,6 +116,8 @@ final class NullPack {
      * distance from the centre) towards the edges. With an emblem it sits on the right at 60% of the height.
      * Rounded black corners, like Go's frame, are cut on top. Without an emblem (and not for the keyboard) it is plain black.
      */
+    static android.content.SharedPreferences cfg;
+
     static Bitmap scene(Bitmap emblem, int glow, boolean glowWithoutEmblem) {
         int[] px = new int[W * H];
         java.util.Arrays.fill(px, 0xFF000000);
@@ -123,6 +125,7 @@ final class NullPack {
             float gr = Color.red(glow), gg = Color.green(glow), gb = Color.blue(glow);
             Random rnd = new Random(7);
             float peak = 0.95f, sigma = 0.40f;
+            float strength = (cfg == null ? 50 : cfg.getInt("picVig", 50)) / 100f * 0.7f;
             float i0 = (float) Math.exp(-(peak * peak) / (2 * sigma * sigma));   // so the very middle is exactly black
             for (int y = 0; y < H; y++) {
                 float ny = (y + 0.5f) / H * 2f - 1f;
@@ -130,7 +133,7 @@ final class NullPack {
                     float nx = (x + 0.5f) / W * 2f - 1f;
                     float d = (float) Math.sqrt(nx * nx + ny * ny) / 1.2f;
                     float k = (float) Math.exp(-((d - peak) * (d - peak)) / (2 * sigma * sigma));
-                    k = Math.max(0f, (k - i0) / (1f - i0)) * 0.7f;
+                    k = Math.max(0f, (k - i0) / (1f - i0)) * strength;
                     float dither = rnd.nextFloat() - 0.5f;   // stops visible bands in the soft glow
                     int r = clamp(Math.round(gr * k + dither));
                     int g = clamp(Math.round(gg * k + dither));
@@ -143,11 +146,11 @@ final class NullPack {
         bm.setPixels(px, 0, W, 0, 0, W, H);
         Canvas c = new Canvas(bm);
         if (emblem != null) {
-            float cx = W * 0.75f, cy = H * 0.41f;
-            float eh = H * 0.60f;
+            float cx = W * (cfg == null ? 50 : cfg.getInt("picX", 50)) / 100f, cy = H * (cfg == null ? 41 : cfg.getInt("picY", 41)) / 100f;
+            float eh = H * (cfg == null ? 60 : cfg.getInt("picSize", 60)) / 100f;
             float ew = eh * emblem.getWidth() / (float) emblem.getHeight();
-            if (ew > W * 0.44f) {
-                ew = W * 0.44f;
+            if (ew > W * 0.9f) {
+                ew = W * 0.9f;
                 eh = ew * emblem.getHeight() / (float) emblem.getWidth();
             }
             Paint p = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG);

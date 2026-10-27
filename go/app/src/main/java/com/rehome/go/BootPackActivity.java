@@ -47,6 +47,7 @@ public class BootPackActivity extends Activity {
         super.onCreate(b);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         p = GoPrefs.get(this);
+        NullPack.cfg = p;
         d = getResources().getDisplayMetrics().heightPixels / 720f;
         ScrollView sv = new ScrollView(this);
         sv.setBackgroundColor(0xFF05070A);
@@ -111,6 +112,13 @@ public class BootPackActivity extends Activity {
         }), wrap(6));
         permView = perm;
         refreshPerms();
+        section(col, "Picture (boot pack and wallpaper)");
+        stepper(col, "Vignette strength", "picVig", 50, 0, 100, 5, "%");
+        stepper(col, "Emblem across (x)", "picX", 50, 0, 100, 1, "%");
+        stepper(col, "Emblem down (y)", "picY", 41, 0, 100, 1, "%");
+        stepper(col, "Emblem size (height)", "picSize", 60, 10, 100, 1, "%");
+        section(col, "Testing");
+        toggle(col, "Show the overlays even when Go is not the Home app", "overOther", true);
         section(col, "Start-up cover");
         stepper(col, "Cover stays for", "coverMs", 12000, 1000, 60000, 500, "ms");
         section(col, "Driving");
@@ -387,11 +395,13 @@ public class BootPackActivity extends Activity {
             int v = Math.max(min, p.getInt(key, def) - step);
             p.edit().putInt(key, v).apply();
             val.setText(fmt(v, unit));
+            if (key.startsWith("pic")) regen();
         });
         repeat(plus, () -> {
             int v = Math.min(max, p.getInt(key, def) + step);
             p.edit().putInt(key, v).apply();
             val.setText(fmt(v, unit));
+            if (key.startsWith("pic")) regen();
         });
         r.addView(minus, new LinearLayout.LayoutParams(px(52), -2));
         r.addView(val, new LinearLayout.LayoutParams(px(150), -2));

@@ -1,5 +1,10 @@
 # Release notes
 
+## Go 2.4
+
+- Boot Pack: emblem back in the middle (9% above centre), softer vignette by default, and settings for vignette strength and emblem x, y and size.
+- New test option (on by default): overlays also show when Go is not the Home app.
+
 ## Go 2.3
 
 - Boot Pack: colour vignette now centred on the screen (black in the middle, colour towards the edges), rounded black corners drawn on every output, emblem on the right.

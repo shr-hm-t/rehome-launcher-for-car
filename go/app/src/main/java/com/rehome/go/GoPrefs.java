@@ -39,6 +39,7 @@ final class GoPrefs {
 
     /** True when another launcher (for example Rehome: Scroll) is the chosen Home app, so Go must stay quiet. */
     static boolean otherHome(Context c) {
+        if (get(c).getBoolean("overOther", true)) return false;
         try {
             Intent h = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
             ResolveInfo ri = c.getPackageManager().resolveActivity(h, PackageManager.MATCH_DEFAULT_ONLY);
