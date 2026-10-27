@@ -124,6 +124,13 @@ final class GoPrefs {
     }
 
     /** The third button: the radio when you are in the 360 or YouTube, YouTube when you are in Maps or the radio. */
+    static String label(String role) {
+        if ("cam".equals(role)) return "360";
+        if ("maps".equals(role)) return "Maps";
+        if ("radio".equals(role)) return "Radio";
+        return "YouTube (Brave)";
+    }
+
     static String third(Context c, SharedPreferences p) {
         if (!AppWatcher.running) return "radio";   // no usage access: radio on a tap, YouTube (Brave) on a hold
         String cur = p.getString("cur", "maps");
