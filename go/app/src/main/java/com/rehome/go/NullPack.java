@@ -124,16 +124,16 @@ final class NullPack {
         if (emblem != null || glowWithoutEmblem) {
             float gr = Color.red(glow), gg = Color.green(glow), gb = Color.blue(glow);
             Random rnd = new Random(7);
-            float spread = (cfg == null ? 50 : cfg.getInt("picSpread", 50)) / 100f;
-            float strength = (cfg == null ? 100 : cfg.getInt("picVig", 100)) / 100f * 0.7f;
-            float r0 = 0.5f * (1f - spread);   // radius of the black middle
+            float spread = (cfg == null ? 100 : cfg.getInt("picSpr2", 100)) / 100f;   // distance where the black has faded out
+            float black = (cfg == null ? 100 : cfg.getInt("picBlack", 100)) / 100f;   // how black the middle is
+            float colour = (cfg == null ? 100 : cfg.getInt("picVig", 100)) / 100f;   // brightness of the colour
             for (int y = 0; y < H; y++) {
                 float ny = (y + 0.5f) / H * 2f - 1f;
                 for (int x = 0; x < W; x++) {
                     float nx = (x + 0.5f) / W * 2f - 1f;
-                    float d = (float) Math.sqrt(nx * nx + ny * ny) / 1.0f;   // 0 middle .. 1 at the edges (an ellipse)
-                    float t = Math.min(1f, Math.max(0f, (d - r0) / (1f - r0)));
-                    float k = (0.5f * t + 0.5f * t * t * (3f - 2f * t)) * strength;   // wide, gradual mix from black to colour
+                    float d = (float) Math.sqrt(nx * nx + ny * ny);   // 0 middle .. 1 at the edge centres (an ellipse)
+                    float a = Math.max(0f, 1f - d / spread) * black;   // black: full in the middle, none at the spread distance
+                    float k = (1f - a) * colour;
                     float dither = rnd.nextFloat() - 0.5f;   // stops visible bands in the soft glow
                     int r = clamp(Math.round(gr * k + dither));
                     int g = clamp(Math.round(gg * k + dither));

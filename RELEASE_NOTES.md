@@ -1,5 +1,9 @@
 # Release notes
 
+## Go 2.4.4
+
+- Boot Pack: simpler vignette. A full colour background with black laid over it: fully black in the middle, fading linearly to nothing at the chosen distance. Settings for colour strength, black spread and black strength.
+
 ## Go 2.4.3
 
 - Boot Pack: the colour now reaches much further in from the edges (wide, gradual spread, black only in a smaller middle).
