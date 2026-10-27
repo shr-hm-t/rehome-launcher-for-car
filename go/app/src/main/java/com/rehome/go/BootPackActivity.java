@@ -113,7 +113,8 @@ public class BootPackActivity extends Activity {
         permView = perm;
         refreshPerms();
         section(col, "Picture (boot pack and wallpaper)");
-        stepper(col, "Vignette strength", "picVig", 50, 0, 100, 5, "%");
+        stepper(col, "Colour strength", "picVig", 100, 0, 100, 5, "%");
+        stepper(col, "Vignette spread (bigger = smaller black middle)", "picSpread", 50, 10, 100, 5, "%");
         stepper(col, "Emblem across (x)", "picX", 50, 0, 100, 1, "%");
         stepper(col, "Emblem down (y)", "picY", 41, 0, 100, 1, "%");
         stepper(col, "Emblem size (height)", "picSize", 60, 10, 100, 1, "%");

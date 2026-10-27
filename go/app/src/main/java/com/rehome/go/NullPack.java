@@ -124,8 +124,9 @@ final class NullPack {
         if (emblem != null || glowWithoutEmblem) {
             float gr = Color.red(glow), gg = Color.green(glow), gb = Color.blue(glow);
             Random rnd = new Random(7);
-            float peak = 0.95f, sigma = 0.40f;
-            float strength = (cfg == null ? 50 : cfg.getInt("picVig", 50)) / 100f * 0.7f;
+            float peak = 0.95f;
+            float sigma = Math.max(0.10f, 0.40f * (cfg == null ? 50 : cfg.getInt("picSpread", 50)) / 50f);
+            float strength = (cfg == null ? 100 : cfg.getInt("picVig", 100)) / 100f * 0.7f;
             float i0 = (float) Math.exp(-(peak * peak) / (2 * sigma * sigma));   // so the very middle is exactly black
             for (int y = 0; y < H; y++) {
                 float ny = (y + 0.5f) / H * 2f - 1f;

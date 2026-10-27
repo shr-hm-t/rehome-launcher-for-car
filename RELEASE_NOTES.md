@@ -1,5 +1,9 @@
 # Release notes
 
+## Go 2.4.1
+
+- Boot Pack: colour strength is back to the original look by default, and a new "Vignette spread" setting controls how big the black middle is.
+
 ## Go 2.4
 
 - Boot Pack: emblem back in the middle (9% above centre), softer vignette by default, and settings for vignette strength and emblem x, y and size.
