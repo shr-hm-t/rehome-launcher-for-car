@@ -64,6 +64,7 @@ public class BootPackActivity extends Activity {
         pl.topMargin = px(14);
         col.addView(preview, pl);
         col.addView(btn("Choose emblem (PNG)", this::pickEmblem), wrap(10));
+        toggle(col, "Make a black background transparent", "cutBlack", true, this::regen);
         col.addView(btn("Remove the emblem", () -> {
             GoPrefs.file(this, "emblem.png").delete();
             regen();
@@ -107,10 +108,25 @@ public class BootPackActivity extends Activity {
 
     // ------------------------------------------------------------------ emblem and files
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        GoService.suspend(true);    // Go's frame and buttons would sit on top of this screen
+    }
+
+    @Override
+    protected void onPause() {
+        GoService.suspend(false);
+        super.onPause();
+    }
+
     private Bitmap emblem() {
         try {
             File f = GoPrefs.file(this, "emblem.png");
-            return f.exists() ? BitmapFactory.decodeFile(f.getAbsolutePath()) : null;
+            if (!f.exists()) return null;
+            Bitmap b = BitmapFactory.decodeFile(f.getAbsolutePath());
+            if (b != null && p.getBoolean("cutBlack", true)) b = NullPack.removeBlack(b);   // a black background becomes transparent
+            return b;
         } catch (Throwable t) {
             return null;
         }
@@ -150,8 +166,7 @@ public class BootPackActivity extends Activity {
                 say("Could not read that image.");
                 return;
             }
-            b = NullPack.removeBlack(b);   // a black background becomes transparent, automatically
-            NullPack.png(b, GoPrefs.file(this, "emblem.png"));
+            NullPack.png(b, GoPrefs.file(this, "emblem.png"));   // the original; the background cut is applied when it is used
             regen();
         } catch (Throwable t) {
             say("Could not use that image: " + t);
@@ -333,6 +348,10 @@ public class BootPackActivity extends Activity {
     }
 
     private void toggle(LinearLayout col, String label, final String key, final boolean def) {
+        toggle(col, label, key, def, null);
+    }
+
+    private void toggle(LinearLayout col, String label, final String key, final boolean def, final Runnable after) {
         LinearLayout r = new LinearLayout(this);
         r.setGravity(Gravity.CENTER_VERTICAL);
         r.setPadding(0, px(4), 0, px(4));
@@ -343,6 +362,7 @@ public class BootPackActivity extends Activity {
             boolean nv = !p.getBoolean(key, def);
             p.edit().putBoolean(key, nv).apply();
             b.setText(nv ? "On" : "Off");
+            if (after != null) after.run();
         });
         r.addView(b, new LinearLayout.LayoutParams(px(120), -2));
         col.addView(r);

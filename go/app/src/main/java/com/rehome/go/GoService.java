@@ -76,7 +76,7 @@ public class GoService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
-        if (frameV == null) build();
+        if (frameV == null && !suspended) build();
         startLocation();
         if (i != null && i.getBooleanExtra("cover", false)) showCover();
         H.removeCallbacks(tick);
@@ -160,18 +160,20 @@ public class GoService extends Service {
         wm.getDefaultDisplay().getRealMetrics(dm);
         W = dm.widthPixels;
         Hh = dm.heightPixels;
-        // bottom to top: speed light, black corner frame (and its touch blockers), buttons, cover
-        speedV = new SpeedView(this);
-        add(speedV, lp(-1, -1, false, Gravity.TOP | Gravity.START, 0, 0));
-        frameV = new FrameView(this);
-        add(frameV, lp(-1, -1, false, Gravity.TOP | Gravity.START, 0, 0));
-        int m = Math.round(frameMargin());
-        if (m > 0) {
-            addBlocker(W, m, Gravity.TOP | Gravity.START);
-            addBlocker(W, m, Gravity.BOTTOM | Gravity.START);
-            addBlocker(m, Hh, Gravity.TOP | Gravity.START);
-            addBlocker(m, Hh, Gravity.TOP | Gravity.END);
-        }
+        // Nothing covers the middle of the screen (newer Android drops touches that pass through a full-screen overlay):
+        // the black frame is four edge strips and four corner pieces; the speed light is added only while speeding.
+        int m = Math.max(1, Math.round(frameMargin()));
+        int cs = Math.round(frameMargin() + frameRadius()) + 2;
+        addPiece(solidView(), W, m, Gravity.TOP | Gravity.START);
+        addPiece(solidView(), W, m, Gravity.BOTTOM | Gravity.START);
+        addPiece(solidView(), m, Hh, Gravity.TOP | Gravity.START);
+        addPiece(solidView(), m, Hh, Gravity.TOP | Gravity.END);
+        addPiece(new CornerView(this, 0, 0), cs, cs, Gravity.TOP | Gravity.START);
+        addPiece(new CornerView(this, W - cs, 0), cs, cs, Gravity.TOP | Gravity.END);
+        addPiece(new CornerView(this, 0, Hh - cs), cs, cs, Gravity.BOTTOM | Gravity.START);
+        addPiece(new CornerView(this, W - cs, Hh - cs), cs, cs, Gravity.BOTTOM | Gravity.END);
+        frameV = blockers.isEmpty() ? null : blockers.get(0);
+        updateSpeedLight();
         btnV = new ButtonsView(this);
         add(btnV, btnV.normalParams());
         if (coverV != null) {   // the cover stays above everything
@@ -180,8 +182,14 @@ public class GoService extends Service {
         }
     }
 
-    private void addBlocker(int w, int h, int gravity) {
+    private View solidView() {
         View v = new View(this);
+        v.setBackgroundColor(0xFF000000);
+        return v;
+    }
+
+    /** A black piece of the frame. It is a real window that takes the touches itself, so the app below never sees them. */
+    private void addPiece(View v, int w, int h, int gravity) {
         v.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent e) {
@@ -189,6 +197,26 @@ public class GoService extends Service {
             }
         });
         if (add(v, lp(w, h, true, gravity, 0, 0))) blockers.add(v);
+    }
+
+    private boolean suspended = false;
+
+    /** Hide Go's overlays while the Boot Pack screen is open, and bring them back afterwards. */
+    static void suspend(boolean on) {
+        final GoService s = inst;
+        if (s == null) return;
+        s.suspended = on;
+        s.H.post(new Runnable() {
+            @Override
+            public void run() {
+                if (s.suspended) {
+                    s.removeAll();
+                    s.updateSpeedLight();
+                } else if (s.frameV == null) {
+                    s.build();
+                }
+            }
+        });
     }
 
     /** Sizes follow the screen height, so they stay the same whatever the "smallest width" is. */
@@ -200,30 +228,56 @@ public class GoService extends Service {
         return Hh * 0.083f;
     }
 
-    /** Black frame with rounded inner corners. Fully opaque. */
-    private class FrameView extends View {
+    /** A corner of the black frame: the same shape everywhere (black outside the rounded inner corner), fully opaque. */
+    private class CornerView extends View {
         private final Paint pt = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Path path = new Path();
+        private final float ox, oy;
 
-        FrameView(Context c) {
+        CornerView(Context c, float ox, float oy) {
             super(c);
+            this.ox = ox;
+            this.oy = oy;
         }
 
         @Override
         protected void onDraw(Canvas c) {
-            float w = getWidth(), h = getHeight();
             float m = frameMargin(), r = frameRadius();
             pt.setStyle(Paint.Style.FILL);
             pt.setColor(0xFF000000);
             path.reset();
             path.setFillType(Path.FillType.EVEN_ODD);
-            path.addRect(0, 0, w, h, Path.Direction.CW);
-            path.addRoundRect(new RectF(m, m, w - m, h - m), r, r, Path.Direction.CW);
+            path.addRect(0, 0, W, Hh, Path.Direction.CW);
+            path.addRoundRect(new RectF(m, m, W - m, Hh - m), r, r, Path.Direction.CW);
+            c.translate(-ox, -oy);
             c.drawPath(path, pt);
         }
     }
 
     // ------------------------------------------------------------------ speed light (over-speed warning)
+
+    private int speedLevel() {
+        return curKmh >= p.getInt("warnRed", 120) ? 2 : curKmh >= p.getInt("warnAmber", 80) ? 1 : 0;
+    }
+
+    private void updateSpeedLight() {
+        boolean want = !suspended && p.getBoolean("speedLight", true) && speedLevel() > 0 && GoPrefs.canOverlay(this) && wm != null;
+        if (!want) {
+            if (speedV != null) {
+                remove(speedV);
+                speedV = null;
+            }
+            return;
+        }
+        if (speedV == null) {
+            speedV = new SpeedView(this);
+            WindowManager.LayoutParams l = lp(-1, Math.max(1, Hh / 3), false, Gravity.TOP | Gravity.START, 0, 0);
+            l.alpha = 0.8f;   // at most 0.8 so newer Android still passes touches through
+            if (!add(speedV, l)) speedV = null;
+        } else {
+            speedV.invalidate();
+        }
+    }
 
     private class SpeedView extends View {
         SpeedView(Context c) {
@@ -246,7 +300,7 @@ public class GoService extends Service {
             }
             int strong = (a << 24) | (col & 0x00FFFFFF), mid = ((a / 3) << 24) | (col & 0x00FFFFFF), none = col & 0x00FFFFFF;
             Paint pt = new Paint(Paint.ANTI_ALIAS_FLAG);
-            float th = getHeight() / 3f;
+            float th = getHeight();
             pt.setShader(new LinearGradient(0, 0, 0, th, new int[]{strong, mid, none}, new float[]{0f, 0.4f, 1f}, Shader.TileMode.CLAMP));
             c.drawRect(0, 0, getWidth(), th, pt);
             pt.setShader(null);
@@ -603,7 +657,7 @@ public class GoService extends Service {
             float before = curKmh;
             curKmh = loc.hasSpeed() ? loc.getSpeed() * 3.6f : 0f;
             int am = p.getInt("warnAmber", 80), rd = p.getInt("warnRed", 120);
-            if (((before >= am) != (curKmh >= am) || (before >= rd) != (curKmh >= rd)) && speedV != null) speedV.invalidate();
+            if ((before >= am) != (curKmh >= am) || (before >= rd) != (curKmh >= rd)) updateSpeedLight();
             check360();
         }
 

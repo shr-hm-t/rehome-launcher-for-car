@@ -129,7 +129,7 @@ final class GoPrefs {
         return "cam".equals(cur) || "yt".equals(cur) ? "radio" : "yt";
     }
 
-    static void launch(Context c, String role) {
+    static boolean launch(Context c, String role) {
         try {
             SharedPreferences p = get(c);
             if ("yt".equals(role)) {
@@ -139,16 +139,18 @@ final class GoPrefs {
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 c.startActivity(i);
                 p.edit().putString("cur", "yt").apply();
-                return;
+                return true;
             }
             String pk = pkg(c, role);
-            if (pk.length() == 0) return;
+            if (pk.length() == 0) return false;
             Intent i = c.getPackageManager().getLaunchIntentForPackage(pk);
-            if (i == null) return;
+            if (i == null) return false;
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             c.startActivity(i);
             p.edit().putString("cur", role).apply();
+            return true;
         } catch (Exception ignored) {
+            return false;
         }
     }
 }

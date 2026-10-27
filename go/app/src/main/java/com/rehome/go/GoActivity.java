@@ -118,7 +118,9 @@ public class GoActivity extends Activity {
         }
         root.removeAllViews();
         root.setBackgroundColor(Color.BLACK);
-        GoPrefs.launch(this, "maps");
+        if (!GoPrefs.launch(this, "maps")) {
+            android.widget.Toast.makeText(this, "Google Maps was not found on this unit.", android.widget.Toast.LENGTH_LONG).show();
+        }
     }
 
     /** Only two things are ever asked: display over other apps, and location (for the speed). */

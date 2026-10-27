@@ -1,5 +1,13 @@
 # Release notes
 
+## Go 2.2
+
+- New icons for the buttons and the app icons.
+- Fixed "immutable bitmap" when choosing an emblem; the black-background cut is now an option (on by default) that keeps your original picture.
+- Rehome: Boot Pack no longer sits under Go's frame and buttons: Go hides its overlays while Boot Pack is open, so Go no longer needs to be force stopped.
+- The black frame is now four edge strips and four corner pieces, so nothing covers the middle of the screen. Newer Android versions (for example on a tablet) drop touches that pass through a full-screen overlay; this keeps touches working there. The speed light is added only while speeding.
+- A message is shown if Google Maps is not found.
+
 ## Go 2.1
 
 A redesign of Rehome: Go. It is now very small and has no screens of its own.

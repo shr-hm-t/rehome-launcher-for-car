@@ -138,7 +138,8 @@ final class NullPack {
                 }
             }
         }
-        Bitmap bm = Bitmap.createBitmap(px, W, H, Bitmap.Config.ARGB_8888);
+        Bitmap bm = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);   // mutable, so a Canvas can draw on it
+        bm.setPixels(px, 0, W, 0, 0, W, H);
         if (emblem != null) {
             Canvas c = new Canvas(bm);
             float eh = H * 0.60f;
