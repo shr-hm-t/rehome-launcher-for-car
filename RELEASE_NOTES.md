@@ -1,5 +1,9 @@
 # Release notes
 
+## Go 2.4.2
+
+- Boot Pack: the vignette is now a smooth, gradual mix from black in the middle to colour at the edges (no bell curve). Spread sets the size of the black middle.
+
 ## Go 2.4.1
 
 - Boot Pack: colour strength is back to the original look by default, and a new "Vignette spread" setting controls how big the black middle is.

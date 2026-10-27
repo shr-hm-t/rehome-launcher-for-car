@@ -124,17 +124,16 @@ final class NullPack {
         if (emblem != null || glowWithoutEmblem) {
             float gr = Color.red(glow), gg = Color.green(glow), gb = Color.blue(glow);
             Random rnd = new Random(7);
-            float peak = 0.95f;
-            float sigma = Math.max(0.10f, 0.40f * (cfg == null ? 50 : cfg.getInt("picSpread", 50)) / 50f);
+            float spread = (cfg == null ? 50 : cfg.getInt("picSpread", 50)) / 100f;
             float strength = (cfg == null ? 100 : cfg.getInt("picVig", 100)) / 100f * 0.7f;
-            float i0 = (float) Math.exp(-(peak * peak) / (2 * sigma * sigma));   // so the very middle is exactly black
+            float r0 = 0.6f * (1f - spread);   // radius of the black middle
             for (int y = 0; y < H; y++) {
                 float ny = (y + 0.5f) / H * 2f - 1f;
                 for (int x = 0; x < W; x++) {
                     float nx = (x + 0.5f) / W * 2f - 1f;
-                    float d = (float) Math.sqrt(nx * nx + ny * ny) / 1.2f;
-                    float k = (float) Math.exp(-((d - peak) * (d - peak)) / (2 * sigma * sigma));
-                    k = Math.max(0f, (k - i0) / (1f - i0)) * strength;
+                    float d = (float) Math.sqrt(nx * nx + ny * ny) / 1.4142f;   // 0 middle .. 1 corners
+                    float t = Math.min(1f, Math.max(0f, (d - r0) / (1f - r0)));
+                    float k = t * t * (3f - 2f * t) * strength;   // smooth, gradual mix from black to colour
                     float dither = rnd.nextFloat() - 0.5f;   // stops visible bands in the soft glow
                     int r = clamp(Math.round(gr * k + dither));
                     int g = clamp(Math.round(gg * k + dither));
