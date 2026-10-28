@@ -4,16 +4,14 @@ Settings > Look > Export theme writes `rehome-theme.json` to the app's files fol
 
 Colours are `#RRGGBB` or `#AARRGGBB`.
 
-| Key | Meaning |
-|---|---|
-| `name`, `version` | Label only |
-| `dark`, `light` | Palettes: `bgTop`, `bgBottom` (background gradient), `accent`, `text`, `sub` (secondary text), `glyph` (icons), `tileFill`, `tileStroke`, `vignetteColor` |
-| `menu` | Settings panels: `bgTop`, `bgBottom`, `stroke`, `accent`, `text`, `sub` |
-| `vignette` | Strength 0-100 |
-| `tileRadius` | Tile corner roundness in dp |
-| `layout` | Fractions of the screen: `pipW`, `pipH`, `barH`, `dockH` |
-| `frame` | `margin`, `corner` in dp |
-| `icons` | Icon overrides, see below |
+- `name`, `version`: Label only
+- `dark`, `light`: Palettes: `bgTop`, `bgBottom` (background gradient), `accent`, `text`, `sub` (secondary text), `glyph` (icons), `tileFill`, `tileStroke`, `vignetteColor`
+- `menu`: Settings panels: `bgTop`, `bgBottom`, `stroke`, `accent`, `text`, `sub`
+- `vignette`: Strength 0-100
+- `tileRadius`: Tile corner roundness in dp
+- `layout`: Fractions of the screen: `pipW`, `pipH`, `barH`, `dockH`
+- `frame`: `margin`, `corner` in dp
+- `icons`: Icon overrides, see below
 
 ## Icons
 
