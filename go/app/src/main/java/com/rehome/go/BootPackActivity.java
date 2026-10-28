@@ -114,8 +114,7 @@ public class BootPackActivity extends Activity {
         refreshPerms();
         section(col, "Picture (boot pack and wallpaper)");
         stepper(col, "Colour strength", "picVig", 100, 0, 100, 5, "%");
-        stepper(col, "Black spread (how far from the middle it fades out)", "picSpr2", 100, 20, 200, 5, "%");
-        stepper(col, "Black strength (middle)", "picBlack", 100, 0, 100, 5, "%");
+        stepper(col, "Fade to dark (right and bottom)", "picDark", 100, 0, 100, 5, "%");
         stepper(col, "Emblem across (x)", "picX", 50, 0, 100, 1, "%");
         stepper(col, "Emblem down (y)", "picY", 41, 0, 100, 1, "%");
         stepper(col, "Emblem size (height)", "picSize", 60, 10, 100, 1, "%");

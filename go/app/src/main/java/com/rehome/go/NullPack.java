@@ -124,16 +124,15 @@ final class NullPack {
         if (emblem != null || glowWithoutEmblem) {
             float gr = Color.red(glow), gg = Color.green(glow), gb = Color.blue(glow);
             Random rnd = new Random(7);
-            float spread = (cfg == null ? 100 : cfg.getInt("picSpr2", 100)) / 100f;   // distance where the black has faded out
-            float black = (cfg == null ? 100 : cfg.getInt("picBlack", 100)) / 100f;   // how black the middle is
             float colour = (cfg == null ? 100 : cfg.getInt("picVig", 100)) / 100f;   // brightness of the colour
+            float dark = (cfg == null ? 100 : cfg.getInt("picDark", 100)) / 100f;   // how much it fades to dark
             for (int y = 0; y < H; y++) {
-                float ny = (y + 0.5f) / H * 2f - 1f;
+                float fy = (y + 0.5f) / H;
+                float lines = 1f + 0.035f * (float) Math.sin(y * Math.PI / 2.0);   // fine horizontal lines, like the unit's own theme
                 for (int x = 0; x < W; x++) {
-                    float nx = (x + 0.5f) / W * 2f - 1f;
-                    float d = (float) Math.sqrt(nx * nx + (ny * H / (float) W) * (ny * H / (float) W));   // a true circle: 0 in the middle, 1 at half the width
-                    float a = Math.max(0f, 1f - d / spread) * black;   // black: full in the middle, none at the spread distance
-                    float k = (1f - a) * colour;
+                    float fx = (x + 0.5f) / W;
+                    // like the unit's own theme: bright on the left and top, fading steadily to dark on the right and bottom
+                    float k = (1f - 0.84f * dark * (0.85f * fx + 0.15f * fy)) * 0.55f * colour * lines;
                     float dither = rnd.nextFloat() - 0.5f;   // stops visible bands in the soft glow
                     int r = clamp(Math.round(gr * k + dither));
                     int g = clamp(Math.round(gg * k + dither));
