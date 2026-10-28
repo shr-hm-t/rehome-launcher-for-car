@@ -14,8 +14,8 @@ Both apps are made mainly for **cars with a 360 camera**, and were tested on one
 - **Hold the Maps button** to move and resize the buttons and set their transparency.
 - **Hold the 360 button** to open the 360 player ([car360-player](https://github.com/bv-ack/car360-player)). Tap opens the unit's own 360 camera.
 - **Hold the radio button** to open YouTube. Tap opens the radio (without usage access it never switches by itself).
-- **Start-up cover:** Go covers the unit's start-up screens with your picture (12 s by default). If your unit has no ugly start-up screens, set the cover time to 0 or a low value in Rehome: Boot Pack.
-- **Boot Pack:** force-stop Rehome: Go in Android settings before opening Rehome: Boot Pack, or it may not work. It only makes the files (in `Download/Rehome`). Installing the boot logo and animation on the unit needs your own tools.
+- **Start-up cover:** off by default. To hide ugly start-up screens with your picture, set a time (for example 12 seconds) in Rehome: Boot Pack.
+- **Boot Pack:** if it shows only a black screen, force-stop Rehome: Go in Android settings and open it again. (Go 2.5.1 tries to fix this, not confirmed on a car.) It only makes the files (in `Download/Rehome`). Installing the boot logo and animation on the unit needs your own tools.
 - **Optional permissions:** location (speed light, and the 360 opening by itself when you creep along slowly) and usage access (the third button switching between radio and YouTube). Without them those features do nothing.
 
 ## Known problems we did not finish

@@ -238,6 +238,7 @@ public class GoService extends Service {
             @Override
             public void run() {
                 if (s.suspended) {
+                    s.removeCover();   // the cover sits above everything, so it hid the Boot Pack screen (black)
                     s.removeAll();
                     s.updateSpeedLight();
                 } else if (s.frameV == null) {
@@ -660,6 +661,7 @@ public class GoService extends Service {
 
     private void showCover() {
         if (coverV != null || !GoPrefs.canOverlay(this) || wm == null) return;
+        if (p.getInt("coverMs", 0) <= 0) return;   // 0 = no cover
         if (W == 0) {
             DisplayMetrics dm = new DisplayMetrics();
             wm.getDefaultDisplay().getRealMetrics(dm);
@@ -692,7 +694,7 @@ public class GoService extends Service {
             public void run() {
                 fadeCover();
             }
-        }, Math.max(1000, p.getInt("coverMs", 12000)));
+        }, Math.max(500, p.getInt("coverMs", 0)));
     }
 
     private void fadeCover() {

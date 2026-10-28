@@ -121,7 +121,7 @@ public class BootPackActivity extends Activity {
         section(col, "Testing");
         toggle(col, "Show the overlays even when Go is not the Home app", "overOther", true);
         section(col, "Start-up cover");
-        stepper(col, "Cover stays for", "coverMs", 12000, 1000, 60000, 500, "ms");
+        stepper(col, "Cover stays for (0 = no cover)", "coverMs", 0, 0, 60000, 500, "ms");
         section(col, "Driving");
         toggle(col, "Show the 360 when driving slowly (test while parked first)", "auto360", true);
         stepper(col, "...faster than", "auto360Min", 5, 0, 60, 1, "km/h");

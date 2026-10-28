@@ -10,8 +10,8 @@ android {
         applicationId 'com.rehome.go'
         minSdk 23
         targetSdk 30
-        versionCode 31
-        versionName '2.5'
+        versionCode 32
+        versionName '2.5.1'
     }
 
     signingConfigs {
