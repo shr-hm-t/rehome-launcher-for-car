@@ -6,7 +6,7 @@ A user guide for two apps for Android car head units. Built and tested on one ca
 
 | App | What it is | Choose it if |
 | --- | --- | --- |
-| **Rehome: Scroll** | A full home screen: offline map, 360 camera window, radio and media widget, one-tap contacts. | You want a launcher of its own. |
+| **Rehome: Scroll** | A full home screen: offline map, 360 camera window, the radio started for you, one-tap contacts. | You want a launcher of its own. |
 | **Rehome: Go** | A tiny Home app that opens Google Maps and puts three buttons, a black corner frame and a speed light over everything. Comes with **Rehome: Boot Pack**. | You already use Google Maps, the radio and YouTube and want them one tap apart. |
 
 Download the APKs from the [releases](../../releases). You can have both installed. Only one can be the Home app at a time.
@@ -73,7 +73,7 @@ Cover time and the slow-speed 360 and speed-light numbers are also in this app.
 1. Press Home and choose **Rehome**, then follow the welcome screen (home app, display over other apps, notification access).
 2. Open settings (gear icon). The **Guide** tab explains the rest.
 
-What it shows: offline map (Mapsforge, optional 3D with MapLibre `.mbtiles`), 360 camera window, radio and media widget, one-tap contacts, steering-wheel voice button through **Rehome: Call Plugin**, a floating Home button and a black frame over other apps, a speed glow along the top, and a dark or light theme (theme files: see [THEMING.md](THEMING.md)).
+What it shows: offline map (Mapsforge, optional 3D with MapLibre `.mbtiles`), 360 camera window, the radio started for you, one-tap contacts, steering-wheel voice button through **Rehome: Call Plugin**, a floating Home button and a black frame over other apps, a speed glow along the top, and a dark or light theme (theme files: see [THEMING.md](THEMING.md)).
 
 Emergency way into the settings: open **Rehome: Scroll** from the app list, or hold four fingers on the launcher for five seconds.
 
