@@ -113,16 +113,21 @@ public class BootPackActivity extends Activity {
         permView = perm;
         refreshPerms();
         section(col, "Picture (boot pack and wallpaper)");
-        stepper(col, "Colour strength", "picVig", 100, 0, 100, 5, "%");
-        stepper(col, "Fade to dark (right and bottom)", "picDark", 100, 0, 100, 5, "%");
         stepper(col, "Emblem across (x)", "picX", 50, 0, 100, 1, "%");
         stepper(col, "Emblem down (y)", "picY", 41, 0, 100, 1, "%");
-        stepper(col, "Emblem size (height)", "picSize", 60, 10, 100, 1, "%");
+        stepper(col, "Emblem size (height)", "picSize", 50, 10, 100, 1, "%");
         section(col, "Testing");
         toggle(col, "Show the overlays even when Go is not the Home app", "overOther", true);
         section(col, "Start-up cover");
         stepper(col, "Cover stays for (0 = no cover)", "coverMs", 0, 0, 60000, 500, "ms");
         section(col, "Driving");
+        col.addView(btn("Test the speed light (shows amber, then red, on Go's screen)", new Runnable() {
+            @Override
+            public void run() {
+                GoService.testLight();
+                finish();
+            }
+        }));
         toggle(col, "Show the 360 when driving slowly (test while parked first)", "auto360", true);
         stepper(col, "...faster than", "auto360Min", 5, 0, 60, 1, "km/h");
         stepper(col, "...and slower than", "auto360Max", 20, 2, 60, 1, "km/h");

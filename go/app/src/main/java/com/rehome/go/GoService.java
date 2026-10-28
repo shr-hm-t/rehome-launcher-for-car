@@ -316,8 +316,38 @@ public class GoService extends Service {
 
     // ------------------------------------------------------------------ speed light (over-speed warning)
 
+    private float testKmh = -1f;
+
+    /** Called from settings: after the settings screen closes, show the amber light for a few seconds, then red, then stop. */
+    static void testLight() {
+        final GoService s = inst;
+        if (s == null) return;
+        s.H.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                s.testKmh = s.p.getInt("warnAmber", 80);
+                s.updateSpeedLight();
+            }
+        }, 1200);
+        s.H.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                s.testKmh = s.p.getInt("warnRed", 120);
+                s.updateSpeedLight();
+            }
+        }, 5200);
+        s.H.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                s.testKmh = -1f;
+                s.updateSpeedLight();
+            }
+        }, 9200);
+    }
+
     private int speedLevel() {
-        return curKmh >= p.getInt("warnRed", 120) ? 2 : curKmh >= p.getInt("warnAmber", 80) ? 1 : 0;
+        float v = testKmh >= 0 ? testKmh : curKmh;
+        return v >= p.getInt("warnRed", 120) ? 2 : v >= p.getInt("warnAmber", 80) ? 1 : 0;
     }
 
     private void updateSpeedLight() {
@@ -347,7 +377,7 @@ public class GoService extends Service {
         @Override
         protected void onDraw(Canvas c) {
             if (!p.getBoolean("speedLight", true)) return;
-            float k = curKmh;
+            float k = testKmh >= 0 ? testKmh : curKmh;
             int col, a;
             if (k >= p.getInt("warnRed", 120)) {
                 col = 0xFFFF3B30;
@@ -537,7 +567,7 @@ public class GoService extends Service {
                     c.drawCircle(cx, cy, size * 0.55f, pt);
                 }
                 if (i == 3) {
-                    drawGear(c, cx, cy, size * 0.36f);
+                    drawGear(c, cx, cy, size * 0.29f);
                     continue;
                 }
                 Bitmap ic = iconFor(roleAt(i));
