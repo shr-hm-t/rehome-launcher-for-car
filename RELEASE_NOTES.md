@@ -11,11 +11,13 @@ Both apps are made mainly for **cars with a 360 camera**, and were tested on one
 ## Rehome: Go (Home app with buttons)
 
 - **Install Google Maps and Brave.** Pressing Home opens Google Maps. The YouTube button opens Brave: set `https://m.youtube.com` as Brave's homepage so it lands on YouTube.
+- **The gear button** opens the settings (Boot Pack maker, cover time, permissions). **Hold the gear** to hide it for good; then use **hold Maps, then Settings**.
+- **First start:** a welcome screen asks for "display over other apps". Nothing starts until you press Start.
 - **Hold the Maps button** to move and resize the buttons and set their transparency.
 - **Hold the 360 button** to open the 360 player ([car360-player](https://github.com/bv-ack/car360-player)). Tap opens the unit's own 360 camera.
 - **Hold the radio button** to open YouTube. Tap opens the radio (without usage access it never switches by itself).
 - **Start-up cover:** off by default. To hide ugly start-up screens with your picture, set a time (for example 12 seconds) in Rehome: Boot Pack.
-- **Boot Pack:** if it shows only a black screen, force-stop Rehome: Go in Android settings and open it again. (Go 2.5.1 tries to fix this, not confirmed on a car.) It only makes the files (in `Download/Rehome`). Installing the boot logo and animation on the unit needs your own tools.
+- **Settings and Boot Pack:** open them with the gear on the bar. If you open the old Boot Pack icon and see only a black screen, force-stop Rehome: Go in Android settings and open it again. It only makes the files (in `Download/Rehome`). Installing the boot logo and animation on the unit needs your own tools.
 - **Optional permissions:** location (speed light, and the 360 opening by itself when you creep along slowly) and usage access (the third button switching between radio and YouTube). Without them those features do nothing.
 
 ## Known problems we did not finish

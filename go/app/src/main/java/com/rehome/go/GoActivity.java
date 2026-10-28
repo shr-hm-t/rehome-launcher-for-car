@@ -17,8 +17,14 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.View;
+import android.view.Gravity;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Rehome: Go as the Home app. Pressing Home (or opening Rehome: Go from the app list) opens Maps. At boot it does not
@@ -97,8 +103,86 @@ public class GoActivity extends Activity {
         }
     }
 
+    private TextView welcomeStatus;
+
+    /** First start: explain, ask for "display over other apps", and keep everything off until Start is pressed. */
+    private void showWelcome() {
+        root.removeAllViews();
+        root.setBackgroundColor(Color.BLACK);
+        LinearLayout col = new LinearLayout(this);
+        col.setOrientation(LinearLayout.VERTICAL);
+        col.setGravity(Gravity.CENTER_HORIZONTAL);
+        int pad = Math.round(getResources().getDisplayMetrics().density * 24);
+        col.setPadding(pad, pad, pad, pad);
+        col.addView(welcomeText("Rehome: Go", 30, Color.WHITE));
+        col.addView(welcomeText("Pressing Home opens Google Maps. A small bar of buttons (360, Maps, radio or YouTube, settings) and a black corner frame sit on top of other apps.", 17, 0xFFCCCCCC));
+        col.addView(welcomeText("Step 1: allow \"display over other apps\". Without it Go cannot show anything.", 17, 0xFFCCCCCC));
+        Button allow = new Button(this);
+        allow.setText("Allow display over other apps");
+        allow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())));
+                } catch (Exception e) {
+                    Toast.makeText(GoActivity.this, "Open Android settings, Apps, Rehome: Go, and allow display over other apps.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+        col.addView(allow);
+        welcomeStatus = welcomeText("", 16, 0xFFFFC857);
+        col.addView(welcomeStatus);
+        col.addView(welcomeText("Step 2: press Start. Location and usage access are optional and can be set later in settings (the gear on the bar).", 17, 0xFFCCCCCC));
+        Button start = new Button(this);
+        start.setText("Start");
+        start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!GoPrefs.canOverlay(GoActivity.this)) {
+                    Toast.makeText(GoActivity.this, "Allow display over other apps first.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                p.edit().putBoolean("welcomed", true).apply();
+                init(getIntent());
+            }
+        });
+        col.addView(start);
+        ScrollView sv = new ScrollView(this);
+        sv.addView(col);
+        root.addView(sv, new FrameLayout.LayoutParams(-1, -1));
+        refreshWelcome();
+    }
+
+    private TextView welcomeText(String t, int sp, int color) {
+        TextView v = new TextView(this);
+        v.setText(t);
+        v.setTextSize(sp);
+        v.setTextColor(color);
+        v.setGravity(Gravity.CENTER);
+        v.setPadding(0, 12, 0, 12);
+        return v;
+    }
+
+    private void refreshWelcome() {
+        if (welcomeStatus == null) return;
+        welcomeStatus.setText(GoPrefs.canOverlay(this) ? "Allowed. You can press Start." : "Not allowed yet.");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (p != null && !p.getBoolean("welcomed", false)) refreshWelcome();
+    }
+
     private void init(Intent i) {
         p = GoPrefs.get(this);
+        if (!p.getBoolean("welcomed", false) && GoPrefs.canOverlay(this)) {
+            p.edit().putBoolean("welcomed", true).apply();   // already set up (an update): no welcome screen
+        }
+        if (!p.getBoolean("welcomed", false)) {
+            showWelcome();   // nothing starts (no service, no Maps) until Start is pressed
+            return;
+        }
         askPermissionsOnce();
         boolean homeIntent = i != null && i.hasCategory(Intent.CATEGORY_HOME);
         boolean boot = homeIntent && SystemClock.elapsedRealtime() < 300000L && GoPrefs.freshBoot(this, p);

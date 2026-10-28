@@ -41,7 +41,16 @@ public class GoService extends Service {
 
     private static final float GAP = 0.10f;           // gap between the buttons, in button sizes
     private static final float PAD = 0.18f;           // space around the buttons inside the pill, in button sizes
-    private static final float PILL_W = 3f + 2f * GAP + 2f * PAD;   // width of the pill, in button sizes
+    /** Number of buttons on the pill: 360, Maps, radio or YouTube, and the settings gear (until it is hidden). */
+    private int nBtn() {
+        return p != null && !p.getBoolean("gear", true) ? 3 : 4;
+    }
+
+    /** Width of the pill, in button sizes. */
+    private float pillW() {
+        int n = nBtn();
+        return n + (n - 1) * GAP + 2f * PAD;
+    }
     private static final float PILL_H = 1f + 2f * PAD;              // height of the pill, in button sizes
 
     private WindowManager wm;
@@ -229,6 +238,28 @@ public class GoService extends Service {
 
     private boolean suspended = false;
 
+    /** Hide every Go window first, then open the settings screen (Boot Pack) in its own task. The overlays come back when it closes. */
+    private void openSettings() {
+        H.post(new Runnable() {
+            @Override
+            public void run() {
+                suspended = true;
+                removeCover();
+                removeAll();
+                updateSpeedLight();
+                try {
+                    Intent i = new Intent(GoService.this, BootPackActivity.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(i);
+                } catch (Exception e) {
+                    suspended = false;
+                    build();
+                }
+            }
+        });
+    }
+
+
     /** Hide Go's overlays while the Boot Pack screen is open, and bring them back afterwards. */
     static void suspend(boolean on) {
         final GoService s = inst;
@@ -366,7 +397,7 @@ public class GoService extends Service {
         // edit mode
         private int drag = 0;                          // 0 none, 1 move, 2 resize
         private float offX, offY, ancX, ancY;
-        private final RectF rMinus = new RectF(), rPlus = new RectF(), rDone = new RectF();
+        private final RectF rMinus = new RectF(), rPlus = new RectF(), rDone = new RectF(), rSet = new RectF();
 
         ButtonsView(Context c) {
             super(c);
@@ -382,7 +413,7 @@ public class GoService extends Service {
         }
 
         private float gw() {
-            return PILL_W * size;
+            return pillW() * size;
         }
 
         private float gh() {
@@ -391,7 +422,7 @@ public class GoService extends Service {
 
         private void readGeometry() {
             size = p.getFloat("bs", 0.16f) * Hh;
-            float defLeft = W - PILL_W * size - 0.03f * Hh, defTop = Hh - PILL_H * size;
+            float defLeft = W - pillW() * size - 0.03f * Hh, defTop = Hh - PILL_H * size;
             left = p.contains("bx") ? p.getFloat("bx", 0f) * W : defLeft;
             top = p.contains("by") ? p.getFloat("by", 0f) * Hh : defTop;
             clampGeometry();
@@ -399,7 +430,7 @@ public class GoService extends Service {
 
         private void clampGeometry() {
             size = Math.max(0.06f * Hh, Math.min(0.40f * Hh, size));
-            if (PILL_W * size > W) size = W / PILL_W;
+            if (pillW() * size > W) size = W / pillW();
             float over = 0.10f * Hh;   // may sit a little outside the screen
             left = Math.max(-over, Math.min(W - gw() + over, left));
             top = Math.max(-over, Math.min(Hh - gh() + over, top));
@@ -456,12 +487,35 @@ public class GoService extends Service {
                 if (!GoPrefs.launchPlayer(GoService.this)) {
                     android.widget.Toast.makeText(GoService.this, "The 360 player is not installed.", android.widget.Toast.LENGTH_LONG).show();
                 }
+            } else if (i == 3) {
+                p.edit().putBoolean("gear", false).apply();   // hide the gear for good; settings stay under hold Maps
+                clampGeometry();
+                try {
+                    wm.updateViewLayout(this, normalParams());
+                } catch (Exception ignored) {
+                }
+                android.widget.Toast.makeText(GoService.this, "Settings button hidden. Hold Maps, then choose Settings.", android.widget.Toast.LENGTH_LONG).show();
+                invalidate();
             } else if (i == 2) {
                 GoPrefs.launch(GoService.this, GoPrefs.otherThird(GoService.this, p));
                 invalidate();
             } else {
                 enterEdit();   // hold Maps (or the pill itself) to move and resize
             }
+        }
+
+        private void drawGear(Canvas c, float cx, float cy, float r) {
+            pt.setColor(Color.WHITE);
+            pt.setStyle(Paint.Style.STROKE);
+            pt.setStrokeWidth(r * 0.42f);
+            c.drawCircle(cx, cy, r * 0.72f, pt);
+            pt.setStrokeWidth(r * 0.36f);
+            for (int k = 0; k < 8; k++) {
+                double a = k * Math.PI / 4.0;
+                float ca = (float) Math.cos(a), sa = (float) Math.sin(a);
+                c.drawLine(cx + ca * r * 0.85f, cy + sa * r * 0.85f, cx + ca * r * 1.2f, cy + sa * r * 1.2f, pt);
+            }
+            pt.setStyle(Paint.Style.FILL);
         }
 
         @Override
@@ -476,11 +530,15 @@ public class GoService extends Service {
             pt.setStyle(Paint.Style.FILL);
             pt.setColor(Color.argb(alpha, 0, 0, 0));
             c.drawPath(pill, pt);
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < nBtn(); i++) {
                 float cx = cellLeft(i, ox) + size / 2f, cy = oy + PAD * size + size / 2f;
                 if (pressed == i) {
                     pt.setColor(0x30FFFFFF);
                     c.drawCircle(cx, cy, size * 0.55f, pt);
+                }
+                if (i == 3) {
+                    drawGear(c, cx, cy, size * 0.36f);
+                    continue;
                 }
                 Bitmap ic = iconFor(roleAt(i));
                 if (ic != null) {
@@ -513,13 +571,15 @@ public class GoService extends Service {
             pt.setColor(Color.WHITE);
             pt.setTextSize(ph * 0.34f);
             float bw = ph * 0.9f, by = py + (ph - bw) / 2f;
-            rMinus.set(px + pw * 0.33f - bw / 2f, by, px + pw * 0.33f + bw / 2f, by + bw);
-            rPlus.set(px + pw * 0.62f - bw / 2f, by, px + pw * 0.62f + bw / 2f, by + bw);
-            rDone.set(px + pw * 0.82f, by, px + pw - ph * 0.15f, by + bw);
-            c.drawText("Transparency", px + pw * 0.15f, py + ph * 0.6f, labelPaint());
+            rMinus.set(px + pw * 0.30f - bw / 2f, by, px + pw * 0.30f + bw / 2f, by + bw);
+            rPlus.set(px + pw * 0.47f - bw / 2f, by, px + pw * 0.47f + bw / 2f, by + bw);
+            rSet.set(px + pw * 0.58f, by, px + pw * 0.77f, by + bw);
+            rDone.set(px + pw * 0.80f, by, px + pw - ph * 0.15f, by + bw);
+            c.drawText("Transparency", px + pw * 0.13f, py + ph * 0.6f, labelPaint());
             drawKey(c, rMinus, "\u2212");
             drawKey(c, rPlus, "+");
             c.drawText(p.getInt("bAlpha", 60) + "%", (rMinus.right + rPlus.left) / 2f, py + ph * 0.62f, pt);
+            drawKey(c, rSet, "Settings");
             drawKey(c, rDone, "Done");
         }
 
@@ -548,9 +608,10 @@ public class GoService extends Service {
         /** Which button (0 to 2) is at this point, or -1. The pill itself counts as Maps (hold it to edit). */
         private int hit(float x, float y) {
             float ox = edit ? left : 0;
-            for (int i = 0; i < 3; i++) {
+            int nb = nBtn();
+            for (int i = 0; i < nb; i++) {
                 float l = cellLeft(i, ox) - GAP * size / 2f, rr = cellLeft(i, ox) + size + GAP * size / 2f;
-                if (x >= (i == 0 ? ox : l) && x <= (i == 2 ? ox + gw() : rr)) return i;
+                if (x >= (i == 0 ? ox : l) && x <= (i == nb - 1 ? ox + gw() : rr)) return i;
             }
             return -1;
         }
@@ -580,7 +641,9 @@ public class GoService extends Service {
                     int i = pressed;
                     pressed = -1;
                     invalidate();
-                    if (!held && i >= 0) {
+                    if (!held && i == 3) {
+                        openSettings();
+                    } else if (!held && i >= 0) {
                         if (!GoPrefs.launch(GoService.this, roleAt(i))) {
                             android.widget.Toast.makeText(GoService.this, GoPrefs.label(roleAt(i)) + " was not found.", android.widget.Toast.LENGTH_SHORT).show();
                         }
@@ -604,6 +667,11 @@ public class GoService extends Service {
                     drag = 0;
                     if (rDone.contains(x, y)) {
                         exitEdit();
+                        return true;
+                    }
+                    if (rSet.contains(x, y)) {
+                        exitEdit();
+                        openSettings();
                         return true;
                     }
                     if (rMinus.contains(x, y) || rPlus.contains(x, y)) {
@@ -637,8 +705,8 @@ public class GoService extends Service {
                         clampGeometry();
                         invalidate();
                     } else if (drag == 2) {
-                        float nw = Math.max(Math.abs(x - ancX), 0.06f * Hh * PILL_W);
-                        size = nw / PILL_W;
+                        float nw = Math.max(Math.abs(x - ancX), 0.06f * Hh * pillW());
+                        size = nw / pillW();
                         clampGeometry();
                         left = x < ancX ? ancX - gw() : ancX;
                         top = y < ancY ? ancY - gh() : ancY;
